@@ -10,5 +10,5 @@ if (lines[0] !== 'aukora-record v0.1') { console.log('not a record'); process.ex
 const feed = hex => { for (const b of Buffer.from(hex, 'hex')) api.input(b); };
 const hex32 = f => Array.from({ length: 32 }, (_, i) => f(i).toString(16).padStart(2, '0')).join('');
 feed(lines[1]); if (api.init() !== 1) { console.log('the start is refused'); process.exit(1); }
-lines.slice(2).forEach((line, n) => { feed(line); if (api.step() !== 1) { console.log(`line ${n + 1} is refused by the core`); process.exit(1); } });
+lines.slice(2).forEach((line, n) => { feed(line); if (api.step() !== 1) { console.log(`frame ${n + 1} is refused by the core`); process.exit(1); } });
 console.log(`replays: ${lines.length - 2} lines\nhead ${hex32(api.head)}\nlaw identity ${hex32(api.lawByte)}`);

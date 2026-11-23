@@ -1,109 +1,63 @@
-# Aukora Core v0.8 (research code from a lab)
+# Aukora Core
 
-A small core for an AI agent's record and its owner's approvals. The rules are one pure function written in
-Lean 4. Laws about that function are proved in Lean. The same text is compiled to WebAssembly, and the core
-checks proofs inside WebAssembly before it accepts a change to its own law set.
+Aukora Core is a small, open-source record and approval engine for AI agents. Given a record, it replays the entries and decides which frames it admits. The released version is **v0.8**. The source, compiled WebAssembly and a sample record are in this repository.
 
-What it does: it replays what was recorded and shows which approvals the core admitted. What a host asserts to it,
-what a host leaves out, and whether any real effect happened are not established by it. **It is not a lock:**
-nothing outside it is forced to obey it. The proof checking happens in the full file only, and it gates changes of
-law data, not replacement of the executable. Two defects are open and are stated here, not hidden:
+**It is a witness, not a lock.** It cannot tell whether a host left something out, told the truth, or actually carried out an action. It doesn't govern any live system.
 
-- **Two old command forms name no record.** They are the plain one-time approval and the old key change. For the
-  approval this was exercised on these exact bytes: one approval signature was admitted and acted on in two
-  different records of one owner. The old key change signs no record either; that run was not made for it. Use
-  the timed approval and the newer key change, which sign the record's head.
-- **A record has an end, and the end is a crash.** In one measurement on an EARLIER small core, with lines of 3,000
-  bytes, a trap came instead of a refusal after about 35,000 lines. It was not re-measured on these bytes, and
-  that figure is one run, not a capacity.
+## See it run
 
-Everything else we know to be unproved or untested is in [v0.8/NOT-PROVED.md](v0.8/NOT-PROVED.md). Read it first.
+From a clone of this repository, with Node.js 24:
 
-More limits, in one line each: the proofs are about the Lean text, not the compiled bytes; it was built on one
-Apple-silicon Mac and Linux is untried; keys are raw files, not a passkey; nothing in any live system is governed
-by it. A later release may re-pin Lean4Lean to a newer commit; that is a new build with new digests.
-
-## Also in this tree: the next line and the lab
-This tree is not a polished subset. Beside the v0.8 release it carries the work in progress, each piece labelled
-with how far it has been checked: **v0.10, a core in which a bound record refuses the two old command forms**
-(the first defect above, closed on those bytes in our tests, built once so far); v0.9; the adapter for bound
-records; a rehearsal of an effect that is refused when the core says no; and small proved lab pieces (a backup
-checker, a totals tree, a governed numeric part). Read [NEXT-LINE.md](NEXT-LINE.md) for what each is and is not.
-
-## Try it in two minutes (Node 24 or newer, nothing to install)
 ```sh
-sh run-all.sh                                         # EVERYTHING below and in NEXT-LINE.md, about a minute
-node standalone/test.mjs                              # 34 end-to-end checks
 node examples/read-record.mjs examples/sample-record.txt
 ```
-The first runs on `standalone/aukora-core-lite.wasm`, a copy of the shipped small core (SHA-256 `2f10eb8f…0b59e9`),
-and refuses to load any core file whose SHA-256 is not in its pin list. The second replays a sample record of five
-frames in the same core and prints its head and the identity of the law set the core was built with. One mutation
-we ran: change one hex character in line 4 of the sample file and run it again; the core refuses frame 2. Not
-every change is caught where it is made: see `v0.8/NOT-PROVED.md`, item 8.
 
-## What is checked
-- One proposition with 44 named laws, proved for one machine and accepted by the Lean 4.19.0 kernel
-  ([v0.8/PROVED.md](v0.8/PROVED.md)). Every statement is about the Lean model.
-- `v0.8/aukora-core.wasm` (7,554,007 bytes, SHA-256
-  `d0d3bfe5f9111419ff4fc98dfc3dc894252d106efe630e0dfce5a2ba4bddf84b`), which carries the proof checker, and
-  `v0.8/aukora-core-lite.wasm` (679,046 bytes, SHA-256
-  `2f10eb8fd9adb3f25d854b642bba29ceaadcbcb2cc40a2fb05fca51f770b59e9`), which does not. Two independent
-  from-scratch builds on the SAME Apple-silicon Mac produced these exact bytes. Whether the procedure below works
-  from an empty folder is a separate question: see "Rebuild from source".
-- Neither file declares any WebAssembly import. That is the whole claim: it says nothing about what a host does
-  with the answers, and nothing about traps.
-- The compiled files are not free of build paths: each Wasm file in this tree contains one path string from the
-  upstream WASI SDK's own build machine (`/Users/runner/work/wasi-sdk/...`). No path of ours is in them.
-- The owner signs with two keys at once, Ed25519 and ML-DSA-65.
+Expected output:
 
-## Verify the shipped files without rebuilding (seconds)
-```sh
-echo "d0d3bfe5f9111419ff4fc98dfc3dc894252d106efe630e0dfce5a2ba4bddf84b  v0.8/aukora-core.wasm" | shasum -a 256 -c -
-echo "2f10eb8fd9adb3f25d854b642bba29ceaadcbcb2cc40a2fb05fca51f770b59e9  v0.8/aukora-core-lite.wasm" | shasum -a 256 -c -
+```text
+replays: 5 lines
+head e258bcc3f72d59da3307ed09a354493266f1e4c0a4185e255588c84391d4aa9f
+law identity 4815cb2ee9f39f6f186d575bdf04efab2b44d31ec9e85e33e9815409ac6acddc
 ```
-Each command prints `OK` and exits 0 only if the file matches. (`v0.8/PINS.sha256` lists these two and the build's
-other outputs, which exist only after a rebuild.)
 
-## Rebuild from source (about 15 minutes, Apple-silicon macOS only)
-The build pins two toolchains by the SHA-256 of every file in them. They are not in this tree: about 540 MB to
-download, about 1.8 GB unpacked, about 650 MB after the fetch script has pruned them to the pinned files.
+The reader pins the shipped small core before running it. It prints the computed head; **you compare it** with the expected head above or with [RELEASE.json](RELEASE.json). A shortened record may still replay. Without a head kept independently, that replay doesn't tell you whether its newest entries are missing. The sample uses throw-away lab keys; it contains public keys and signatures, not the private keys. Don't put real records or credentials into these experiments. To try a damaged record, copy `examples/sample-record.txt` somewhere outside the clone and edit the copy.
+
+## What is proved, what is tested, and what is still open
+
+- **Proved about the model:** Lean checked one proposition with 44 named laws about one machine. That is not a proof about the compiled Wasm, its cryptography, or how a host uses its answers. The full Wasm includes a checker for changes to law data; this does not authorize replacing the executable. The small Wasm used in the example does not include that checker. See [what is proved](v0.8/PROVED.md) and [what is not proved](v0.8/NOT-PROVED.md).
+- **Open in v0.8: two old commands aren't bound to a record.** The old one-time approval and old key-change forms don't name a record or position. The lab observed the same old approval admitted and acted on in two bound records owned by the same keys. The corresponding act-level experiment was not run for the old key change. The newer approval and key-change forms sign the head; do not mistake that for a fix to old starts.
+- **Open in v0.8: long histories can trap.** The runtime keeps earlier segments. One run on an earlier small build trapped after roughly 35,000 lines with 3,000 bytes per line, rather than refusing cleanly. That was not measured on these shipped bytes and is not a capacity guarantee.
+- **Not supplied:** passkey login, key recovery after losing the raw owner keys, a host that must obey the core, or evidence that every action was logged. Read [the full limitations](v0.8/NOT-PROVED.md) before relying on any result.
+
+## Try the local checks
+
 ```sh
-sh release-tools/fetch-toolchain.sh toolchain          # downloads Lean 4.19.0 and WASI SDK 25, prunes to the pins
+node standalone/test.mjs
+sh run-all.sh
+```
+
+The first checks the v0.8 adapter with lab keys. The second runs the bundled release and lab smoke checks, not a Lean rebuild or every experiment. Its backup check needs Python 3 and uses the system temporary directory, cleaning up what it creates. If Python is absent, the runner prints `SKIP` for that check and ends with `PASS WITH SKIPS` instead of `ALL PASS`. Read the individual results. These test commands don't install dependencies; the source rebuild below is separate.
+
+## Experimental work alongside the release
+
+**v0.10 is not the release.** In the tested cases, a record started in bound mode refuses the two old command forms as classified by the decoder; the timed approval still works. Old-start records remain exposed, and this doesn't establish that no other route can produce the same effect. The refused list is fixed at start. v0.10 was built once by its builder on one Apple-silicon Mac; no independent from-scratch rebuild is evidenced here.
+
+See [the next-line guide](NEXT-LINE.md) for exact commands and evidence for v0.9, v0.10, the bound-record adapter and the lab experiments. The effect-sink rehearsal uses lab keys and is not wired into a live application. The different parts of this repository do not all have the same level of evidence.
+
+## Check bytes or rebuild
+
+The [release manifest](RELEASE.json) lists the full and small v0.8 Wasm fingerprints and the sample fingerprint. Compare those to the exact files you use; matching bytes do not certify what the binary does. Each Wasm file contains one build-machine path of the upstream WASI SDK (`/Users/runner/work/wasi-sdk/...`); no path of ours is in them.
+
+The documented rebuild is for **Apple-silicon macOS**. Linux rebuilds are untried. It needs Python 3, Node 24, the Xcode command-line tools, `curl`, `unzip`, `tar` and the pinned Lean and WASI SDK toolchains. The optional fetch step uses the network and needs about 540 MB for downloads and 1.8 GB for unpacking before pruning to about 650 MB, so keep roughly 2.5 GB free. It extracts the downloads before the staged-build tool checks the per-file pins. Use a separate, empty toolchain directory and an unused build destination.
+
+```sh
+sh release-tools/fetch-toolchain.sh toolchain
 python3 release-tools/build-tree.py v0.8 ../core-build --toolchain toolchain
-sh ../core-build/v0.8/build.sh                         # ends with: PASS v0.8
+sh ../core-build/v0.8/build.sh
 ```
-`build-tree.py` refuses a toolchain that does not match the pins, copies the sources and the build inputs into a
-fresh folder, and the build checks its own outputs against `v0.8/PINS.sha256`. The folders `spike/`, `logs/`,
-`core/`, `v0.1/` and `toolchain/downloads/` hold the build's inputs at the paths the build expects; their names
-are lab history, not structure. Needs Python 3, Node 24 and the Xcode command-line tools. Peak memory about
-1.4 GB. **Linux is untried.** STATUS OF THIS PROCEDURE: an isolated build staged by `build-tree.py`
-from these sources and inputs has passed on the authors' Mac, with toolchain folders already on that machine. A
-first run of the whole procedure from an empty folder by an independent reviewer got as far as the download and
-was then refused by `build-tree.py`, because the fetch script of that day left unpinned files in the Lean folder;
-the script now prunes to the pinned files. Whether THIS version of the procedure has since passed from an empty
-folder, and by whom, is stated in the commit message that published this tree, because that fact is newer than
-the tree.
 
-## What is in this tree
-- `v0.8/`: the Lean sources, the two compiled files and their pins, the wire format (`WIRE.md`), test vectors,
-  tests, what is proved and what is not.
-- `standalone/`: a plain Node adapter, a command-line tool and an MCP server over the small core. No dependencies.
-- `examples/`: a sample record made with throw-away keys (it holds public keys and signatures only) and a
-  ten-line reader.
-- `release-tools/`: the isolated-build tool and the toolchain pins.
-- `RELEASE.json`: the declared facts of this release in one place (law count, law identity, file digests, the
-  sample record's expected head).
-- `v0.9/`, `v0.10/`, `standalone-next/`, `bailiff-rehearsal/`, `skunkworks/`: newer and less checked; see `NEXT-LINE.md`.
-- Build inputs, as described above. The three archives under `logs/r6/downloads/` and `toolchain/downloads/` are
-  unmodified upstream sources under Apache-2.0; see `NOTICE`.
+The last step should end with `PASS v0.8`. The documented v0.8 from-scratch builds produced matching artifacts on the same Mac. The [public release commit](https://github.com/Aukora-xyz/aukora-core/commit/0aaaeff1) records no independent empty-folder rebuild of this exact export at publication. Those are different claims.
 
-## Keys
-No live or private owner signing material is included. Tests make throw-away keys as they run and keep none. The
-sample record and the two `keys.bin` fixtures hold PUBLIC keys only. The compatibility list in `v0.8/Compatibility/ListGate.lean` recognises two earlier lab cores by fingerprint; one of
-them was a fixture whose owner is a published test key (RFC 8032, test 2). Never run such a core as a real one.
+Start with [the wire format](v0.8/WIRE.md), [the proofs](v0.8/PROVED.md) and [the limitations](v0.8/NOT-PROVED.md). [NOTICE](NOTICE) identifies the bundled upstream inputs.
 
-## Licence
-AGPL-3.0-or-later ([LICENSE](LICENSE)) applies to the files in this tree written by the Aukora authors. The three
-third-party source archives keep their own terms; they, their versions and their licences are listed in
-[NOTICE](NOTICE), and the Apache License 2.0 text is in `LICENSES/`.
+Licence: AGPL-3.0-or-later.
