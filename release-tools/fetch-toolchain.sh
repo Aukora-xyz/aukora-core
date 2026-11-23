@@ -42,7 +42,11 @@ try:
         if part.is_symlink():
             raise SystemExit("fetch-toolchain: destination path contains a symlink")
     dest.mkdir(parents=True, exist_ok=True)
-    entries = list(dest.iterdir())
+    # The repository ships toolchain/downloads/ (the pinned Lean source archive), so a real "downloads" folder is allowed.
+    entries = [p for p in dest.iterdir() if p.name != "downloads"]
+    downloads = dest / "downloads"
+    if downloads.exists() and (downloads.is_symlink() or not downloads.is_dir()):
+        raise SystemExit("fetch-toolchain: destination downloads entry must be a real directory")
     if not entries:
         print("empty")
     elif {p.name for p in entries} == set(sys.argv[2:]) and all(
@@ -50,7 +54,7 @@ try:
     ):
         print("unpacked")
     else:
-        raise SystemExit("fetch-toolchain: destination must be empty or contain only the two unpacked tool directories")
+        raise SystemExit("fetch-toolchain: destination must be empty or contain only the two unpacked tool directories (and downloads/)")
 except OSError:
     raise SystemExit("fetch-toolchain: destination must be a writable real directory")
 PY
