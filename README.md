@@ -24,7 +24,7 @@ frame 5: statement: "the end"
 
 This checks the record you were given. It does not show that any outside action actually happened, and a reader that has no independently kept expected head cannot tell a complete record from a shorter valid one. Here the expected head ships in the same repository, so this run only shows the mechanism. In real use the expected head must come from a source the sender of the record does not control.
 
-A **frame** is one encoded entry. The **head** is the resulting record fingerprint, and the **law identity** identifies the rule set the core reports. The reader checks the small Wasm file against a pinned digest; you compare the printed head against the expected value above or [RELEASE.json](RELEASE.json).
+A **frame** is one encoded entry. The **head** is the resulting record fingerprint, and the **law identity** identifies the rule set the core reports. The reader checks the small Wasm file against a pinned digest; for the shipped sample, the command above checks the published expected head (also in [RELEASE.json](RELEASE.json)) and exits non-zero on a mismatch. For your own records, obtain the expected head independently of the record you are handed; the sample head here is a demo fixture, not independent attestation of a live record.
 
 **A witness, not a lock.** A valid replay is not proof the host logged everything, told the truth, or carried out an external action. Core does not govern a live system. The sample uses lab keys and includes no private signing material.
 
