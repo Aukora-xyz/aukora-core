@@ -1,6 +1,6 @@
 # Where things are
 
-Start with [the sample replay](../README.md#aukora-core). The folder names below are preserved because the rebuild stages selected files from those exact paths. A folder's presence is not a claim that its entire contents are covered by CI.
+Start with [the sample replay](../README.md#aukora-core). Corrections to frozen pages are in [ERRATA](../ERRATA.md). The folder names below are preserved because the rebuild stages selected files from those exact paths. A folder's presence is not a claim that its entire contents are covered by CI.
 
 | Area | Folder | What's inside and how to read it |
 | --- | --- | --- |
@@ -13,6 +13,8 @@ Start with [the sample replay](../README.md#aukora-core). The folder names below
 | Release support | [release-extras](../release-extras/), [release-patches](../release-patches/), `rebuild.sh`, `fork-release.py`, `memwatch.py` | Release-assembly tooling and public-release patches. Lab tooling; not needed to run the sample. |
 | Experimental | [v0.9](../v0.9/) | Decoded-command table work. See NEXT-LINE for evidence; inherited proof-page headings aren't v0.9 results. |
 | Experimental | [v0.10](../v0.10/) | Bound-record refusal of two old forms in tested cases; built twice on one Mac by two builders, byte-identical; no outside rebuild evidenced. |
+| Experimental | [drt](../drt/), [hardening](../hardening/), [tools](../tools/) | Hardening round 1: the compiled files compared with each other and with the interpreted Lean model, the effect and monitor laws, the form table and boundary check. Evidence, not proofs about the bytes; see NEXT-LINE. |
+| Experimental | [v0.10 proof index](V0.10-PROOF-INDEX.md), [ERRATA](../ERRATA.md), [THREATS](../THREATS.md), [COMPARISON](../COMPARISON.md) | v0.10's own proof index, corrections to frozen pages, the threat model, and this core beside published systems. |
 | Experimental | [standalone-next](../standalone-next/) | Node adapter for the bound-record formats; selected checks, not a deployed integration. |
 | Experimental | [bailiff-rehearsal](../bailiff-rehearsal/) | Effect sink, promotion judge and verdict record rehearsed with lab keys; not a production lock. |
 | Experimental | [skunkworks](../skunkworks/) | Backup, totals tree, delegation and other lab pieces. Some run in the smoke suite; some need a separately pinned Lean toolchain. |

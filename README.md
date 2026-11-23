@@ -45,6 +45,8 @@ Experimental **v0.10** refused both old decoded forms in the tested bound record
 
 Start with [the repository map](docs/WHERE-THINGS-ARE.md). The v0.8 release, later experiments, the earlier research builds and the preserved build inputs are intentionally separate. The host adapter and sample run without installing npm packages. The effect-sink rehearsal is not wired into production.
 
+Corrections to frozen pages are in [ERRATA.md](ERRATA.md). The v0.10 proofs are indexed in [docs/V0.10-PROOF-INDEX.md](docs/V0.10-PROOF-INDEX.md). The evidence from the first hardening round is in [NEXT-LINE.md](NEXT-LINE.md#hardening-round-1-23-to-24-november-2026).
+
 ## Check it yourself
 
 ```sh

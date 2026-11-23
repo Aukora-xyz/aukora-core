@@ -15,10 +15,23 @@ run "the same on the full core" node v0.10/tests/independent/readdress.mjs v0.10
 run "bound edges" node v0.10/tests/independent/bound-edges.mjs $L
 run "v0.9 and v0.10 agree on an old-start record" node v0.10/tests/independent/twin-cores.mjs v0.9/aukora-core-lite.wasm $L
 run "adapter for bound records" node standalone-next/bound-test.mjs $L c924c72aec0214b59f1f9405ac2c7467b86e2d96985540570ad1896db3c25d93 closed
+run "bound sample: 4 old-form probes refused, the timed approval admitted (bare reader)" node examples/read-bound.mjs $L examples/bound-sample.json
+echo "== the compiled files against each other (differential, generated inputs; see drt/README.md) =="
+run "small and full v0.10, 2,000 generated inputs" node drt/drt.mjs --steps 2000 --seed 1 $L v0.10/aukora-core.wasm
+run "v0.10 and v0.9 on old-start records, 2,000 inputs" node drt/drt.mjs --steps 2000 --seed 2 --old --ignore lawByte,journalByte,sealByte $L v0.9/aukora-core-lite.wasm
+run "the model-checked stream: both v0.10 files give the outputs the interpreted Lean model gave, 1,025 inputs" node drt/drt.mjs --check drt/fixtures/model-checked-1 $L v0.10/aukora-core.wasm
+if node drt/drt.mjs --check drt/fixtures/model-checked-1 v0.9/aukora-core-lite.wasm > /dev/null 2>&1; then fail=1; echo "FAIL  control: an older core reproduced the stream"; else echo "PASS  control: an older core does not reproduce the stream"; fi
+if node drt/drt.mjs --steps 1500 --seed 8 --bound --law-control --save "${TMPDIR:-/tmp}/drt-law-control" v0.9/aukora-core-lite.wasm v0.9/aukora-core-lite.wasm > /dev/null 2>&1; then fail=1; echo "FAIL  control: the bound-record law check did not catch v0.9"; else echo "PASS  control: the bound-record law check catches v0.9, which still admits the old forms"; fi
+if node drt/drt.mjs --steps 700 --seed 3 --control --save "${TMPDIR:-/tmp}/drt-control" $L $L > /dev/null 2>&1; then fail=1; echo "FAIL  control: a planted wrong verdict was NOT caught"; else echo "PASS  control: a planted wrong verdict is caught"; fi
+echo "== the form table and the boundary check =="
+run "the JavaScript form table matches the Lean text" node tools/forms-test.mjs
+if node tools/forms-test.mjs --control > /dev/null 2>&1; then fail=1; echo "FAIL  control: a planted wrong form number was NOT caught"; else echo "PASS  control: a planted wrong form number is caught"; fi
 echo "== an effect refused when the core says no (rehearsal, lab keys) =="
 run "effect sink, bound record" env BAILIFF_CORE=$L node bailiff-rehearsal/test-bound.mjs closed
 run "promotion judge" env BAILIFF_CORE=$L node bailiff-rehearsal/promotion-test.mjs
 run "the core's own record of its verdicts" env BAILIFF_CORE=$L node bailiff-rehearsal/own-record-test.mjs
+run "revertible effects: every write and every undo needs its own approval" env BAILIFF_CORE=$L node bailiff-rehearsal/revertible-test.mjs
+if node bailiff-rehearsal/revertible-test.mjs --control > /dev/null 2>&1; then fail=1; echo "FAIL  control: a broken undo was NOT caught"; else echo "PASS  control: a broken undo is caught"; fi
 echo "== lab pieces =="
 if command -v python3 >/dev/null 2>&1; then run "backup only ever grew" node skunkworks/backup/test.mjs; else skips=$((skips+1)); echo "SKIP  backup only ever grew: needs python3"; fi
 run "totals tree" node skunkworks/onion/onion-test.mjs

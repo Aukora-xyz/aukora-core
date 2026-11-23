@@ -5,7 +5,7 @@ const c = await Core.load(process.argv[2]); const owner = newOwner(); c.init(own
 const pay = { payload: 'send the weekly report to the team', audience: 'mail', generation: 0, nonce: 1 };
 c.say('a sample record: every line below was admitted by the core');
 c.act(pay);                                   // refused: no approval yet (a refusal leaves no line)
-c.grantUntil(owner, pay, c.seq + 5);          // the owner approves exactly this, until line 7
+c.grantUntil(owner, pay, c.seq + 5);          // the owner approves exactly this, one use, through frame 6 inclusive (c.seq is 1 here)
 c.act(pay);                                   // admitted once
 c.act(pay);                                   // refused: an approval is used once
 c.outcome(pay, 'confirmed');

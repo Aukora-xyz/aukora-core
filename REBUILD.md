@@ -1,3 +1,5 @@
+> **Historical page** (the rebuild of an early core, Core5). Start from [README.md](README.md) and [docs/WHERE-THINGS-ARE.md](docs/WHERE-THINGS-ARE.md).
+
 # Rebuild Core5
 
 Run `./rebuild.sh` from this folder on Apple silicon macOS. The command prints `PASS SHA-256` and the measured digest after checking the Lean sources, matching the pinned Wasm digest, and passing the Node tests. A failure returns a nonzero status, prints `FAIL` with the digest if available, and preserves the build directory named in the output.

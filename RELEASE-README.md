@@ -1,3 +1,5 @@
+> **Historical page** (written for v0.5). Start from [README.md](README.md) and [docs/WHERE-THINGS-ARE.md](docs/WHERE-THINGS-ARE.md).
+
 # Aukora Core v0.5 (a lab release)
 
 A small core for an AI agent's record and its owner's approvals. The rules are one pure function written in
