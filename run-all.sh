@@ -1,0 +1,24 @@
+#!/bin/sh
+# Run everything in this tree that needs only Node 24. No install, no network. Exit 0 only if every line passes.
+cd "$(dirname "$0")"; fail=0; L=v0.10/aukora-core-lite.wasm
+run() { label="$1"; shift; if text=$("$@" 2>&1); then echo "PASS  $label: $(printf '%s' "$text" | tail -1)"; else fail=1; echo "FAIL  $label: $(printf '%s' "$text" | tail -2 | tr '\n' ' ')"; fi; }
+echo "== the release, v0.8 =="
+run "adapter, 34 end-to-end checks" node standalone/test.mjs
+run "sample record replays" node examples/read-record.mjs examples/sample-record.txt
+run "re-addressing (old forms still admitted: the open defect)" node v0.8/tests/independent/readdress.mjs v0.8/aukora-core-lite.wasm
+run "bound edges" node v0.8/tests/independent/bound-edges.mjs v0.8/aukora-core-lite.wasm
+echo "== the next line, v0.10: a bound record refuses the two old forms =="
+run "re-addressing, closed (56 checks)" node v0.10/tests/independent/readdress.mjs $L closed
+run "the same on the full core" node v0.10/tests/independent/readdress.mjs v0.10/aukora-core.wasm closed
+run "bound edges" node v0.10/tests/independent/bound-edges.mjs $L
+run "v0.9 and v0.10 agree on an old-start record" node v0.10/tests/independent/twin-cores.mjs v0.9/aukora-core-lite.wasm $L
+run "adapter for bound records" node standalone-next/bound-test.mjs $L c924c72aec0214b59f1f9405ac2c7467b86e2d96985540570ad1896db3c25d93 closed
+echo "== an effect refused when the core says no (rehearsal, lab keys) =="
+run "effect sink, bound record" env BAILIFF_CORE=$L node bailiff-rehearsal/test-bound.mjs closed
+run "promotion judge" env BAILIFF_CORE=$L node bailiff-rehearsal/promotion-test.mjs
+run "the core's own record of its verdicts" env BAILIFF_CORE=$L node bailiff-rehearsal/own-record-test.mjs
+echo "== lab pieces =="
+run "backup only ever grew" node skunkworks/backup/test.mjs
+run "totals tree" node skunkworks/onion/onion-test.mjs
+run "delegation receipts" node skunkworks/delegation-exhibit/test.mjs
+[ "$fail" = 0 ] && echo "ALL PASS" || { echo "SOMETHING FAILED"; exit 1; }

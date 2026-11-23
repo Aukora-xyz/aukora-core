@@ -1,0 +1,40 @@
+#!/bin/sh
+# Download the two pinned toolchains for Apple-silicon macOS into DIR, then PRUNE them to exactly the pinned files.
+# About 540 MB to download and about 1.8 GB unpacked; about 650 MB is left after pruning.
+# Nothing here is trusted: build-tree.py checks every file against release-tools/TOOLCHAIN-darwin-arm64.sha256 and refuses
+# a toolchain with a changed, missing OR EXTRA file. The upstream Lean archive holds several thousand files the build never
+# reads; the pins name the 596 it does. Pruning removes the rest, so the toolchain that builds is exactly the pinned one.
+# Usage: sh release-tools/fetch-toolchain.sh toolchain
+set -eu
+dir="${1:?usage: fetch-toolchain.sh DIR}"; pins="$(cd "$(dirname "$0")" && pwd)/TOOLCHAIN-darwin-arm64.sha256"
+[ -f "$pins" ] || { echo "fetch-toolchain: pin file not found beside this script"; exit 1; }
+mkdir -p "$dir"; cd "$dir"
+lean=https://github.com/leanprover/lean4/releases/download/v4.19.0/lean-4.19.0-darwin_aarch64.zip
+wasi=https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-25/wasi-sdk-25.0-arm64-macos.tar.gz
+[ -d lean-4.19.0-darwin_aarch64 ] || { curl -fL --retry 3 -o lean.zip "$lean"; unzip -q lean.zip; rm lean.zip; }
+[ -d wasi-sdk-25.0-arm64-macos ] || { curl -fL --retry 3 -o wasi.tar.gz "$wasi"; tar -xzf wasi.tar.gz; rm wasi.tar.gz; }
+python3 - "$pins" <<'PY'
+import os, sys
+from pathlib import Path
+# Keep exactly what the pin file names: every pinned path, and every folder on the way to one. Remove everything else.
+# A pin line is 64 hex characters, then two spaces (a file) or " L " (a link), then the path.
+keep = set()
+for line in Path(sys.argv[1]).read_text().splitlines():
+    if not line.strip(): continue
+    keep.add(line[67:] if line[64:67] == " L " else line[66:])
+tops = sorted({p.split("/", 1)[0] for p in keep})
+removed = 0
+for top in tops:
+    if not Path(top).is_dir(): raise SystemExit(f"fetch-toolchain: {top} is missing after unpacking")
+    for root, dirs, files in os.walk(top, topdown=False, followlinks=False):
+        for name in files + [d for d in dirs if os.path.islink(os.path.join(root, d))]:
+            p = os.path.join(root, name)
+            if p not in keep: os.remove(p); removed += 1
+        for d in dirs:
+            p = os.path.join(root, d)
+            if not os.path.islink(p) and os.path.isdir(p) and not os.listdir(p): os.rmdir(p)
+missing = [p for p in sorted(keep) if not os.path.lexists(p)]
+print(f"pruned {removed} unpinned files; {len(keep)} pinned paths expected; {len(missing)} missing")
+if missing: raise SystemExit("fetch-toolchain: pinned paths missing after unpacking, first: " + missing[0])
+PY
+ls -d lean-4.19.0-darwin_aarch64 wasi-sdk-25.0-arm64-macos
