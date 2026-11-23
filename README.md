@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/Aukora-xyz/aukora-core/actions/workflows/tests.yml/badge.svg)](https://github.com/Aukora-xyz/aukora-core/actions/workflows/tests.yml)
 
-Aukora Core is an open-source way to replay an AI agent's record and check which actions its owner approved in that record, without trusting the agent's summary.
+The open-source Aukora Core reader replays a disclosed record and checks its final head against an expected head. It describes statements, one-use and timed owner approvals, direct acts and outcomes it recognises. The core also replays other frame kinds, such as mandates and revocations, which the reader displays as “kind not decoded by this reader”.
 
 From this checkout with Node.js 24, run:
 
@@ -24,7 +24,7 @@ frame 5: statement: "the end"
 
 This checks the record you were given. It does not show that any outside action actually happened, and a reader that has no independently kept expected head cannot tell a complete record from a shorter valid one. Here the expected head ships in the same repository, so this run only shows the mechanism. In real use the expected head must come from a source the sender of the record does not control.
 
-A **frame** is one encoded entry. The **head** is the resulting record fingerprint, and the **law identity** identifies the rule set the core reports. The reader checks the small Wasm file against a pinned digest; for the shipped sample, the command above checks the published expected head (also in [RELEASE.json](RELEASE.json)) and exits non-zero on a mismatch. For your own records, obtain the expected head independently of the record you are handed; the sample head here is a demo fixture, not independent attestation of a live record.
+A **frame** is one encoded entry. The **head** is the resulting record fingerprint, and the **law identity** identifies the rule set the core reports. A head by itself does not authenticate the keys the record starts with. The reader checks the small Wasm file against a pinned digest; for the shipped sample, the command above checks the published expected head (also in [RELEASE.json](RELEASE.json)) and exits non-zero on a mismatch. For your own records, obtain the expected head independently of the record you are handed; the sample head here is a demo fixture, not independent attestation of a live record.
 
 **A witness, not a lock.** A valid replay is not proof the host logged everything, told the truth, or carried out an external action. Core does not govern a live system. The sample uses lab keys and includes no private signing material.
 
@@ -39,7 +39,7 @@ A **frame** is one encoded entry. The **head** is the resulting record fingerpri
 1. **Two old command forms are not tied to a record.** An old one-time approval was accepted and acted on in two bound records owned by the same keys. The old key-change format also lacks the binding; that corresponding act-level run was not made on v0.8. The newer approval and key-change forms sign the head; that does not repair old starts.
 2. **Long histories can trap.** The shipped v0.8 small core trapped after 34,987 lines of 3,000 bytes each (102.1 MiB) in one measurement on one Mac, and the experimental v0.10 small core after 34,988. That is one observation, not a capacity limit.
 
-Experimental **v0.10** refused both old decoded forms in the tested bound records while still admitting the timed approval. The refused list is fixed at start; old-start records remain exposed. That test does not establish that another route cannot produce the same effect. v0.10 was built twice from scratch on one Apple-silicon Mac by two builders and both files came out byte-identical (the second builder's report); there is no rebuild on other hardware or by anyone outside the project. [Experimental evidence and limits](NEXT-LINE.md).
+Experimental **v0.10** refuses both old decoded forms in every state reachable from a bound start (proved in the Lean model, [v0.10/Proofs/BoundRefuses.lean](v0.10/Proofs/BoundRefuses.lean); run on both files in the tested records) while still admitting the timed approval. The refused list is fixed at start; old-start records remain exposed. For new grants and owner key changes the model has no other route ([hardening/BoundEffects.lean](hardening/BoundEffects.lean)); other effects are not covered. v0.10 was built twice from scratch on one Apple-silicon Mac by two builders and both files came out byte-identical (the second builder's report); there is no rebuild on other hardware or by anyone outside the project. [Experimental evidence and limits](NEXT-LINE.md).
 
 ## Where things are
 
@@ -62,7 +62,7 @@ The first runs the v0.8 adapter's checks. The second runs selected release and l
 
 The documented source rebuild targets **Apple-silicon macOS**, not Linux. Two documented v0.8 builds on the same Mac matched, but an independent empty-folder rebuild of the exact public export is not evidenced here. The platform's CI smoke checks are a separate result.
 
-You'll need Node 24, Python 3, the Xcode command-line tools, and the pinned Lean and WASI SDK toolchains. The optional fetch uses `curl`, `unzip` and `tar`, downloads about 540 MB and needs about 2.5 GB free. It extracts the downloads before the later per-file pin check. Use a separate empty directory for the toolchain and an unused build destination.
+You'll need Node 24, Python 3, the Xcode command-line tools, and the pinned Lean and WASI SDK toolchains. The optional fetch uses `curl`, `unzip` and `tar`, downloads about 540 MB and needs about 2.5 GB free. It checks each archive against a SHA-256 consistency pin before unpacking, then every kept file against the per-file pins. Use a separate empty directory for the toolchain and an unused build destination.
 
 ```sh
 sh release-tools/fetch-toolchain.sh toolchain

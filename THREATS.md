@@ -13,14 +13,14 @@ two keys at once (Ed25519 and ML-DSA-65). The core keeps no secret and makes no 
   extended, garbage. It can read every line of this repository, including the laws.
 - **Cannot** change the core bytes the host has pinned by digest, and cannot use the owner's private keys.
 
-What the core then guarantees is stated as laws in `v0.8/PROVED.md` (and for the next line in `NEXT-LINE.md`), each
+What the Lean model is proved to do against this adversary is stated as laws in `v0.8/PROVED.md` (and for the next line in `NEXT-LINE.md`), each
 about the Lean model. The ones that matter most against this adversary:
 - an act that needs approval is refused unless a current approval for exactly that act exists, and an approval is
-  spent once;
+  spent once within one record (in v0.8 an old plain approval was used again in a second record: open defect 1 in the README);
 - a frame built on a stale head or a stale position is refused, and leaves the state unchanged;
 - owner commands need both of the owner's current signatures;
 - in a record started bound (v0.10), the two old command forms that name no record are refused, and a new
-  approval or a change of keys can come only from a form that signs the record's head (`hardening/BoundEffects.lean`);
+  grant or a change of the owner's keys can come only from a form that signs the record's head (`hardening/BoundEffects.lean`; mandates, budgets and passes are not covered by that law);
 - a refused input changes nothing.
 
 ## What is trusted (and so is a place to look for faults)
