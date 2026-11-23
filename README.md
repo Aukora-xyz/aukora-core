@@ -7,14 +7,22 @@ Aukora Core is an open-source way to replay an AI agent's record and check which
 From this checkout with Node.js 24, run:
 
 ```sh
-node examples/read-record.mjs examples/sample-record.txt
+node examples/read-record.mjs examples/sample-record.txt --expect-head "$(cat examples/sample-record.head)"
 ```
 
 ```text
+head matches the expected head
 replays: 5 lines
 head e258bcc3f72d59da3307ed09a354493266f1e4c0a4185e255588c84391d4aa9f
 law identity 4815cb2ee9f39f6f186d575bdf04efab2b44d31ec9e85e33e9815409ac6acddc
+frame 1: statement: "a sample record: every line below was admitted by the core"
+frame 2: owner approval (both signatures): deliver "send the weekly report to the team", audience "mail", generation 0, nonce 1, through frame 6 inclusive
+frame 3: direct act: deliver "send the weekly report to the team", audience "mail", generation 0, nonce 1
+frame 4: reported outcome: confirmed; deliver "send the weekly report to the team", audience "mail", generation 0, nonce 1
+frame 5: statement: "the end"
 ```
+
+This checks the record you were given. It does not show that any outside action actually happened, and a reader that has no independently kept expected head cannot tell a complete record from a shorter valid one.
 
 A **frame** is one encoded entry. The **head** is the resulting record fingerprint, and the **law identity** identifies the rule set the core reports. The reader checks the small Wasm file against a pinned digest; you compare the printed head against the expected value above or [RELEASE.json](RELEASE.json).
 

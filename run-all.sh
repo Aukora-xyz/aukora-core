@@ -5,7 +5,8 @@ cd "$(dirname "$0")" || exit 1; fail=0; skips=0; L=v0.10/aukora-core-lite.wasm
 run() { label="$1"; shift; if text=$("$@" 2>&1); then echo "PASS  $label: $(printf '%s' "$text" | tail -1)"; else fail=1; echo "FAIL  $label: $(printf '%s' "$text" | tail -2 | tr '\n' ' ')"; fi; }
 echo "== the release, v0.8 =="
 run "adapter, 34 end-to-end checks" node standalone/test.mjs
-run "sample record replays" node examples/read-record.mjs examples/sample-record.txt
+run "sample record replays" node examples/read-record.mjs examples/sample-record.txt --expect-head "$(cat examples/sample-record.head)"
+run "reader checks the expected head" node examples/read-record-test.mjs
 run "re-addressing (old forms still admitted: the open defect)" node v0.8/tests/independent/readdress.mjs v0.8/aukora-core-lite.wasm
 run "bound edges" node v0.8/tests/independent/bound-edges.mjs v0.8/aukora-core-lite.wasm
 echo "== the next line, v0.10: a bound record refuses the two old forms =="
