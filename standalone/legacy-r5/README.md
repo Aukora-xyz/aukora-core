@@ -10,7 +10,7 @@ Lab status: research, not a product. Licence intent: AGPL-3.0-or-later, like the
 | `aukora-core.mjs` | a 100-line adapter: append an event, read the head, replay a log. It decides nothing |
 | `cli.mjs` | a command line over the adapter |
 | `mcp-server.mjs` | the same three reads and one write as MCP tools, so an agent host can attach |
-| `demo-mythos-session/record.log` | a real record kept by a Claude Code session of its own lab actions |
+| `demo-*/record.log` | a real record kept by a Claude Code session of its own lab actions |
 
 ## Try it (Node 20 or newer, nothing to install)
 ```

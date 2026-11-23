@@ -1,4 +1,4 @@
-// AUKORA Core, standalone adapter (lab, Mythos, 22 Nov 2026). No dependencies beyond Node's standard library.
+// AUKORA Core, standalone adapter (lab, 22 Nov 2026). No dependencies beyond Node's standard library.
 // It loads the proved core (round 5: state, SHA-256, byte-bound upgrade and owner-signature checks inside) and
 // gives any agent system three things: append an event, read the head, replay a log to check it.
 // The adapter decides nothing. Every accept or refuse comes from the Wasm core.
