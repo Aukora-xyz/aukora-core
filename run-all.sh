@@ -1,5 +1,6 @@
 #!/bin/sh
-# Run everything in this tree that needs only Node 24. No install, no network. Exit 0 only if every line passes.
+# Run the tests in this tree. Needs Node 24; the backup line also needs python3 and uses the system temporary folder
+# (removed afterwards), and is skipped with a SKIP line if python3 is missing. No install, no network. Exit 0 only if every line passes.
 cd "$(dirname "$0")"; fail=0; L=v0.10/aukora-core-lite.wasm
 run() { label="$1"; shift; if text=$("$@" 2>&1); then echo "PASS  $label: $(printf '%s' "$text" | tail -1)"; else fail=1; echo "FAIL  $label: $(printf '%s' "$text" | tail -2 | tr '\n' ' ')"; fi; }
 echo "== the release, v0.8 =="
@@ -18,7 +19,7 @@ run "effect sink, bound record" env BAILIFF_CORE=$L node bailiff-rehearsal/test-
 run "promotion judge" env BAILIFF_CORE=$L node bailiff-rehearsal/promotion-test.mjs
 run "the core's own record of its verdicts" env BAILIFF_CORE=$L node bailiff-rehearsal/own-record-test.mjs
 echo "== lab pieces =="
-run "backup only ever grew" node skunkworks/backup/test.mjs
+if command -v python3 >/dev/null 2>&1; then run "backup only ever grew" node skunkworks/backup/test.mjs; else echo "SKIP  backup only ever grew: needs python3"; fi
 run "totals tree" node skunkworks/onion/onion-test.mjs
 run "delegation receipts" node skunkworks/delegation-exhibit/test.mjs
 [ "$fail" = 0 ] && echo "ALL PASS" || { echo "SOMETHING FAILED"; exit 1; }

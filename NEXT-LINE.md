@@ -52,5 +52,5 @@ it is not one, because nothing forces a real system to route through it.
   did NOT contain.
 
 The check scripts under `skunkworks/proved/` expect a pinned Lean toolchain at a path you set (`LAB`); they were
-run in the lab and NOT from this tree. The plain-code tests run from this tree with Node 24 and nothing else.
+run in the lab and NOT from this tree. The plain-code tests run from this tree with Node 24; the backup test also needs Python 3 and uses your system's temporary folder (it removes what it makes).
 None of this is used by any live system.
