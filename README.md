@@ -16,13 +16,13 @@ replays: 5 lines
 head e258bcc3f72d59da3307ed09a354493266f1e4c0a4185e255588c84391d4aa9f
 law identity 4815cb2ee9f39f6f186d575bdf04efab2b44d31ec9e85e33e9815409ac6acddc
 frame 1: statement: "a sample record: every line below was admitted by the core"
-frame 2: owner approval (both signatures): deliver "send the weekly report to the team", audience "mail", generation 0, nonce 1, through frame 6 inclusive
+frame 2: owner approval (both signatures, one use): deliver "send the weekly report to the team", audience "mail", generation 0, nonce 1, through frame 6 inclusive
 frame 3: direct act: deliver "send the weekly report to the team", audience "mail", generation 0, nonce 1
 frame 4: reported outcome: confirmed; deliver "send the weekly report to the team", audience "mail", generation 0, nonce 1
 frame 5: statement: "the end"
 ```
 
-This checks the record you were given. It does not show that any outside action actually happened, and a reader that has no independently kept expected head cannot tell a complete record from a shorter valid one.
+This checks the record you were given. It does not show that any outside action actually happened, and a reader that has no independently kept expected head cannot tell a complete record from a shorter valid one. Here the expected head ships in the same repository, so this run only shows the mechanism. In real use the expected head must come from a source the sender of the record does not control.
 
 A **frame** is one encoded entry. The **head** is the resulting record fingerprint, and the **law identity** identifies the rule set the core reports. The reader checks the small Wasm file against a pinned digest; you compare the printed head against the expected value above or [RELEASE.json](RELEASE.json).
 
@@ -37,7 +37,7 @@ A **frame** is one encoded entry. The **head** is the resulting record fingerpri
 ## Open defects in v0.8
 
 1. **Two old command forms are not tied to a record.** An old one-time approval was accepted and acted on in two bound records owned by the same keys. The old key-change format also lacks the binding; that corresponding act-level run was not made on v0.8. The newer approval and key-change forms sign the head; that does not repair old starts.
-2. **Long histories can trap.** One earlier build trapped around 35,000 lines, with 3,000 bytes per line. That is one observation, not a capacity limit or a measurement of the shipped bytes.
+2. **Long histories can trap.** The shipped v0.8 small core trapped after 34,987 lines of 3,000 bytes each (102.1 MiB) in one measurement on one Mac, and the experimental v0.10 small core after 34,988. That is one observation, not a capacity limit.
 
 Experimental **v0.10** refused both old decoded forms in the tested bound records while still admitting the timed approval. The refused list is fixed at start; old-start records remain exposed. That test does not establish that another route cannot produce the same effect. v0.10 was built twice from scratch on one Apple-silicon Mac by two builders and both files came out byte-identical (the second builder's report); there is no rebuild on other hardware or by anyone outside the project. [Experimental evidence and limits](NEXT-LINE.md).
 

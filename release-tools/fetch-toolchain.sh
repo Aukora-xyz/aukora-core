@@ -3,7 +3,7 @@
 # About 540 MB to download and about 1.8 GB unpacked; about 650 MB is left after pruning.
 # Nothing here is trusted: build-tree.py checks every file against release-tools/TOOLCHAIN-darwin-arm64.sha256 and refuses
 # a toolchain with a changed, missing OR EXTRA file. The upstream Lean archive holds several thousand files the build never
-# reads; the pins name the 596 it does. Pruning removes the rest, so the toolchain that builds is exactly the pinned one.
+# reads; the pins name every kept file. Pruning removes the rest, so the toolchain that builds is exactly the pinned one.
 # Usage: sh release-tools/fetch-toolchain.sh toolchain
 set -eu
 dir="${1:?usage: fetch-toolchain.sh DIR}"; pins="$(cd "$(dirname "$0")" && pwd)/TOOLCHAIN-darwin-arm64.sha256"
