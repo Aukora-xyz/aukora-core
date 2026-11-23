@@ -31,7 +31,7 @@ A **frame** is one encoded entry. The **head** is the resulting record fingerpri
 1. **Two old command forms are not tied to a record.** An old one-time approval was accepted and acted on in two bound records owned by the same keys. The old key-change format also lacks the binding; that corresponding act-level run was not made on v0.8. The newer approval and key-change forms sign the head; that does not repair old starts.
 2. **Long histories can trap.** One earlier build trapped around 35,000 lines, with 3,000 bytes per line. That is one observation, not a capacity limit or a measurement of the shipped bytes.
 
-Experimental **v0.10** refused both old decoded forms in the tested bound records while still admitting the timed approval. The refused list is fixed at start; old-start records remain exposed. That test does not establish that another route cannot produce the same effect. The v0.10 build was made once by its builder on one Apple-silicon Mac; there is no independently reproduced build here. [Experimental evidence and limits](NEXT-LINE.md).
+Experimental **v0.10** refused both old decoded forms in the tested bound records while still admitting the timed approval. The refused list is fixed at start; old-start records remain exposed. That test does not establish that another route cannot produce the same effect. v0.10 was built twice from scratch on one Apple-silicon Mac by two builders and both files came out byte-identical (the second builder's report); there is no rebuild on other hardware or by anyone outside the project. [Experimental evidence and limits](NEXT-LINE.md).
 
 ## Where things are
 

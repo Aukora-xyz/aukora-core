@@ -12,7 +12,7 @@ Start with [the sample replay](../README.md#aukora-core). The folder names below
 | Release support | [.github](../.github/) | Linux smoke workflow for shipped bytes, not compiler or rebuild validation. |
 | Release support | [release-extras](../release-extras/), [release-patches](../release-patches/), `rebuild.sh`, `fork-release.py`, `memwatch.py` | Release-assembly tooling and public-release patches. Lab tooling; not needed to run the sample. |
 | Experimental | [v0.9](../v0.9/) | Decoded-command table work. See NEXT-LINE for evidence; inherited proof-page headings aren't v0.9 results. |
-| Experimental | [v0.10](../v0.10/) | Bound-record refusal of two old forms in tested cases; one builder's build, no independent rebuild evidenced. |
+| Experimental | [v0.10](../v0.10/) | Bound-record refusal of two old forms in tested cases; built twice on one Mac by two builders, byte-identical; no outside rebuild evidenced. |
 | Experimental | [standalone-next](../standalone-next/) | Node adapter for the bound-record formats; selected checks, not a deployed integration. |
 | Experimental | [bailiff-rehearsal](../bailiff-rehearsal/) | Effect sink, promotion judge and verdict record rehearsed with lab keys; not a production lock. |
 | Experimental | [skunkworks](../skunkworks/) | Backup, totals tree, delegation and other lab pieces. Some run in the smoke suite; some need a separately pinned Lean toolchain. |

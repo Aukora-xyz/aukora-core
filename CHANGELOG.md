@@ -15,5 +15,5 @@
 ## Experimental lines (not releases)
 
 - **v0.9:** decoder/form-table work. It does not refuse the old forms.
-- **v0.10:** conditional refusal of two decoded forms in tested bound records; old-start behavior remains exposed. One builder's build, no evidenced independent rebuild.
+- **v0.10:** conditional refusal of two decoded forms in tested bound records; old-start behavior remains exposed. Built twice on one Apple-silicon Mac by two builders, byte-identical (second builder's report); no rebuild on other hardware or by an outside party.
 - **standalone-next, bailiff-rehearsal, skunkworks:** a bound-record adapter, effect-sink rehearsal and lab checks. None governs live effects. See [NEXT-LINE](NEXT-LINE.md).

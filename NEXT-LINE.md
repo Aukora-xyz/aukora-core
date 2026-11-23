@@ -18,8 +18,9 @@ starts with those two forms on its refused list, and one place in the machine (`
   old forms are refused, signed for that very record or re-addressed from a twin (56 checks,
   `v0.10/tests/independent/readdress.mjs <core> closed`); the timed approval still works; a record started the old
   way behaves exactly as under v0.9 (3,913 steps compared, `twin-cores.mjs`).
-- NOT DONE: v0.10 has been built ONCE, by its builder. The second, independent from-scratch rebuild that every
-  earlier version had is not in this tree's evidence. Treat its digests as one builder's report.
+- v0.10 was rebuilt from scratch a second time, by a second builder, from an isolated staged folder on the same Apple-silicon
+  Mac; both files came out byte-identical to the pinned digests (23 Nov 2026, the second builder's report). NOT DONE: a rebuild on
+  other hardware or by someone outside the project.
 - NOT PROVED: the refusal is proved for the forms as the decoder classifies them. It is not proved that no other
   route produces the same effect. No frame can yet CHANGE the list; a record's list is fixed at its start.
 - An old-start record is exactly as exposed as in v0.8.
