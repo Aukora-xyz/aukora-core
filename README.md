@@ -1,18 +1,14 @@
 # Aukora Core
 
-Aukora Core is a small, open-source record and approval engine for AI agents. Given a record, it replays the entries and decides which frames it admits. The released version is **v0.8**. The source, compiled WebAssembly and a sample record are in this repository.
+[![tests](https://github.com/Aukora-xyz/aukora-core/actions/workflows/tests.yml/badge.svg)](https://github.com/Aukora-xyz/aukora-core/actions/workflows/tests.yml)
 
-**It is a witness, not a lock.** It cannot tell whether a host left something out, told the truth, or actually carried out an action. It doesn't govern any live system.
+Aukora Core is an open-source way to replay an AI agent's record and check which actions its owner approved in that record, without trusting the agent's summary.
 
-## See it run
-
-From a clone of this repository, with Node.js 24:
+From this checkout with Node.js 24, run:
 
 ```sh
 node examples/read-record.mjs examples/sample-record.txt
 ```
-
-Expected output:
 
 ```text
 replays: 5 lines
@@ -20,35 +16,43 @@ head e258bcc3f72d59da3307ed09a354493266f1e4c0a4185e255588c84391d4aa9f
 law identity 4815cb2ee9f39f6f186d575bdf04efab2b44d31ec9e85e33e9815409ac6acddc
 ```
 
-The reader pins the shipped small core before running it. It prints the computed head; **you compare it** with the expected head above or with [RELEASE.json](RELEASE.json). A shortened record may still replay. Without a head kept independently, that replay doesn't tell you whether its newest entries are missing. The sample uses throw-away lab keys; it contains public keys and signatures, not the private keys. Don't put real records or credentials into these experiments. To try a damaged record, copy `examples/sample-record.txt` somewhere outside the clone and edit the copy.
+A **frame** is one encoded entry. The **head** is the resulting record fingerprint, and the **law identity** identifies the rule set the core reports. The reader checks the small Wasm file against a pinned digest; you compare the printed head against the expected value above or [RELEASE.json](RELEASE.json).
 
-## What is proved, what is tested, and what is still open
+**A witness, not a lock.** A valid replay is not proof the host logged everything, told the truth, or carried out an external action. Core does not govern a live system. The sample uses lab keys and includes no private signing material.
 
-- **Proved about the model:** Lean checked one proposition with 44 named laws about one machine. That is not a proof about the compiled Wasm, its cryptography, or how a host uses its answers. The full Wasm includes a checker for changes to law data; this does not authorize replacing the executable. The small Wasm used in the example does not include that checker. See [what is proved](v0.8/PROVED.md) and [what is not proved](v0.8/NOT-PROVED.md).
-- **Open in v0.8: two old commands aren't bound to a record.** The old one-time approval and old key-change forms don't name a record or position. The lab observed the same old approval admitted and acted on in two bound records owned by the same keys. The corresponding act-level experiment was not run for the old key change. The newer approval and key-change forms sign the head; do not mistake that for a fix to old starts.
-- **Open in v0.8: long histories can trap.** The runtime keeps earlier segments. One run on an earlier small build trapped after roughly 35,000 lines with 3,000 bytes per line, rather than refusing cleanly. That was not measured on these shipped bytes and is not a capacity guarantee.
-- **Not supplied:** passkey login, key recovery after losing the raw owner keys, a host that must obey the core, or evidence that every action was logged. Read [the full limitations](v0.8/NOT-PROVED.md) before relying on any result.
+## What is proved / what is not
 
-## Try the local checks
+- **Released v0.8:** Lean checked one proposition with 44 named laws for one model. Read [the laws](v0.8/PROVED.md) and [their limits](v0.8/NOT-PROVED.md). The proofs do not establish compiler or cryptographic correctness, absence of side channels, or that the compiled engine and host behave like the model.
+- **Two builds, two uses:** The small Wasm replays records. The full Wasm includes a checker for changes to rule data; it does not authorize replacing the executable. The checker/runtime comparison is evidence, not a proof of their correspondence to the model.
+- **Scope:** Raw signing keys, not passkeys; no recovery if the owner loses the required signing keys. A shorter record can replay cleanly unless a reader independently retained an expected head. The lab engine's finite capacity matters.
+
+## Open defects in v0.8
+
+1. **Two old command forms are not tied to a record.** An old one-time approval was accepted and acted on in two bound records owned by the same keys. The old key-change format also lacks the binding; that corresponding act-level run was not made on v0.8. The newer approval and key-change forms sign the head; that does not repair old starts.
+2. **Long histories can trap.** One earlier build trapped around 35,000 lines, with 3,000 bytes per line. That is one observation, not a capacity limit or a measurement of the shipped bytes.
+
+Experimental **v0.10** refused both old decoded forms in the tested bound records while still admitting the timed approval. The refused list is fixed at start; old-start records remain exposed. That test does not establish that another route cannot produce the same effect. The v0.10 build was made once by its builder on one Apple-silicon Mac; there is no independently reproduced build here. [Experimental evidence and limits](NEXT-LINE.md).
+
+## Where things are
+
+Start with [the repository map](docs/WHERE-THINGS-ARE.md). The v0.8 release, later experiments, the earlier research builds and the preserved build inputs are intentionally separate. The host adapter and sample run without installing npm packages. The effect-sink rehearsal is not wired into production.
+
+## Check it yourself
 
 ```sh
 node standalone/test.mjs
 sh run-all.sh
 ```
 
-The first checks the v0.8 adapter with lab keys. The second runs the bundled release and lab smoke checks, not a Lean rebuild or every experiment. Its backup check needs Python 3 and uses the system temporary directory, cleaning up what it creates. If Python is absent, the runner prints `SKIP` for that check and ends with `PASS WITH SKIPS` instead of `ALL PASS`. Read the individual results. These test commands don't install dependencies; the source rebuild below is separate.
+The first runs the v0.8 adapter's checks. The second runs selected release and lab checks, not a Lean rebuild or every experiment. Its backup check needs Python 3 and writes a temporary folder it later removes. Without Python the suite reports `PASS WITH SKIPS` when its remaining checks succeed. The [Linux checks](https://github.com/Aukora-xyz/aukora-core/actions/workflows/tests.yml) exercise the shipped artifacts; they do not rebuild them.
 
-## Experimental work alongside the release
+[RELEASE.json](RELEASE.json) has the expected fingerprints for both v0.8 files and the sample. Those pins identify bytes, not behavior. The Wasm files include an upstream WASI SDK build-machine path. To explore refusal, edit a disposable copy of the public sample, never a real record. See [contributing](CONTRIBUTING.md) or [private security reporting](SECURITY.md).
 
-**v0.10 is not the release.** In the tested cases, a record started in bound mode refuses the two old command forms as classified by the decoder; the timed approval still works. Old-start records remain exposed, and this doesn't establish that no other route can produce the same effect. The refused list is fixed at start. v0.10 was built once by its builder on one Apple-silicon Mac; no independent from-scratch rebuild is evidenced here.
+## Rebuild
 
-See [the next-line guide](NEXT-LINE.md) for exact commands and evidence for v0.9, v0.10, the bound-record adapter and the lab experiments. The effect-sink rehearsal uses lab keys and is not wired into a live application. The different parts of this repository do not all have the same level of evidence.
+The documented source rebuild targets **Apple-silicon macOS**, not Linux. Two documented v0.8 builds on the same Mac matched, but an independent empty-folder rebuild of the exact public export is not evidenced here. The platform's CI smoke checks are a separate result.
 
-## Check bytes or rebuild
-
-The [release manifest](RELEASE.json) lists the full and small v0.8 Wasm fingerprints and the sample fingerprint. Compare those to the exact files you use; matching bytes do not certify what the binary does. Each Wasm file contains one build-machine path of the upstream WASI SDK (`/Users/runner/work/wasi-sdk/...`); no path of ours is in them.
-
-The documented rebuild is for **Apple-silicon macOS**. Linux rebuilds are untried. It needs Python 3, Node 24, the Xcode command-line tools, `curl`, `unzip`, `tar` and the pinned Lean and WASI SDK toolchains. The optional fetch step uses the network and needs about 540 MB for downloads and 1.8 GB for unpacking before pruning to about 650 MB, so keep roughly 2.5 GB free. It extracts the downloads before the staged-build tool checks the per-file pins. Use a separate, empty toolchain directory and an unused build destination.
+You'll need Node 24, Python 3, the Xcode command-line tools, and the pinned Lean and WASI SDK toolchains. The optional fetch uses `curl`, `unzip` and `tar`, downloads about 540 MB and needs about 2.5 GB free. It extracts the downloads before the later per-file pin check. Use a separate empty directory for the toolchain and an unused build destination.
 
 ```sh
 sh release-tools/fetch-toolchain.sh toolchain
@@ -56,8 +60,4 @@ python3 release-tools/build-tree.py v0.8 ../core-build --toolchain toolchain
 sh ../core-build/v0.8/build.sh
 ```
 
-The last step should end with `PASS v0.8`. The documented v0.8 from-scratch builds produced matching artifacts on the same Mac. The [public release commit](https://github.com/Aukora-xyz/aukora-core/commit/0aaaeff1) records no independent empty-folder rebuild of this exact export at publication. Those are different claims.
-
-Start with [the wire format](v0.8/WIRE.md), [the proofs](v0.8/PROVED.md) and [the limitations](v0.8/NOT-PROVED.md). [NOTICE](NOTICE) identifies the bundled upstream inputs.
-
-Licence: AGPL-3.0-or-later.
+Expect `PASS v0.8` at the end. Keep the result and file digests with the exact revision and platform. Source and third-party terms are documented in [LICENSE](LICENSE) and [NOTICE](NOTICE).
