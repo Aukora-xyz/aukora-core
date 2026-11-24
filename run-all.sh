@@ -36,4 +36,6 @@ echo "== lab pieces =="
 if command -v python3 >/dev/null 2>&1; then run "backup only ever grew" node skunkworks/backup/test.mjs; else skips=$((skips+1)); echo "SKIP  backup only ever grew: needs python3"; fi
 run "totals tree" node skunkworks/onion/onion-test.mjs
 run "delegation receipts" node skunkworks/delegation-exhibit/test.mjs
+run "Pentora machine: five cubes, shared corners, one body (compiled from the proved text)" node skunkworks/proved/pentora-machine/check.mjs
+if node skunkworks/proved/pentora-machine/check.mjs control > /dev/null 2>&1; then fail=1; echo "FAIL  control: a planted wrong Pentora verdict was NOT caught"; else echo "PASS  control: a planted wrong Pentora verdict is caught"; fi
 if [ "$fail" != 0 ]; then echo "SOMETHING FAILED"; exit 1; elif [ "$skips" != 0 ]; then echo "PASS WITH SKIPS ($skips skipped)"; else echo "ALL PASS"; fi

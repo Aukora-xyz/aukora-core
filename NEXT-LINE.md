@@ -89,6 +89,12 @@ it is not one, because nothing forces a real system to route through it.
   through a judged upgrade.
 - `proved/cordis-lean/`: five small theorems about revertible effects, a sketch written while reading published
   work on the idea. It is ours, it is a sketch, and it claims nothing about anyone else's system.
+- `proved/pentora-machine/`: five cubes in a dodecahedron, built in exact arithmetic and checked in the kernel (every
+  corner in exactly two cubes, every two cubes sharing exactly two corners, 110 outer cells), and a machine on it:
+  five organs each report one cube, the shared corners are where two must agree, agreeing reports have exactly one
+  body behind them, a single false organ is named by its neighbours, and the whole body is a 22-byte address. 29
+  theorems, compiled to a 148 KB Wasm file; `run-all.sh` compares that file with plain code. An instrument: its
+  verdict carries no authority and nothing uses it yet.
 - `delegation-exhibit/`, `bubble/`, `alibi/`: exhibits of delegation receipts and of two ways to show what a record
   did NOT contain. `alibi/` checks that an item is not in a committed set; it does not show that every read was
   logged.
