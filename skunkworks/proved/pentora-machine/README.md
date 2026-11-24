@@ -146,13 +146,10 @@ followed by eight corners in slot order. Input codes are 0 for failed, 1 for unk
 
 ## What was checked
 
-The five Lean files that `check.sh` checks declare 89 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in
-`Twin.lean`, 9 in `Sharper.lean`, 12 in `Stamp.lean`). A sixth file, `Rule.lean`, adds 9 more (98 in all); it is checked by the separate,
-optional `check-rule.sh`, and its audit is in `check-rule.txt`, not in the figures below. The stored axiom audit (`check.txt`) lists 68 of the 89
+The six Lean files that `check.sh` checks declare 91 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in `Twin.lean`, 9 in `Sharper.lean`, 12 in `Stamp.lean`, 2 in `StampBytes.lean`). A seventh file, `Rule.lean`, adds 9 more (100 in all); it is checked by the separate,
+optional `check-rule.sh`, and its audit is in `check-rule.txt`, not in the figures below. The stored axiom audit (`check.txt`) lists 70 of the 91
 and 18 list no axioms. It lists no axioms for the six geometry results, none for ten of the eleven `Twin.lean` results (`majority_true` lists
-`propext`), and none for `address_bits`. Nine audited results use `Classical.choice`: `seams_nil_iff`, `no_seam_one_body` and seven in
-`Stamp.lean` (`go_iff`, `one_part_cannot_force_go`, `honest_go`, `any_part_can_stop`, `two_owners_can_force`, `private_fault_can_be_hidden`,
-`judge_zero_means_go`). The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean files checked by `check.sh` and `check-rule.sh` contain no `sorry` (the check output shows none).
+`propext`), and none for `address_bits`. Ten audited results use `Classical.choice`: `seams_nil_iff`, `no_seam_one_body`, seven in `Stamp.lean` (`go_iff`, `one_part_cannot_force_go`, `honest_go`, `any_part_can_stop`, `two_owners_can_force`, `private_fault_can_be_hidden`, `judge_zero_means_go`) and `judge_zero_iff` in `StampBytes.lean`. The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean files checked by `check.sh` and `check-rule.sh` contain no `sorry` (the check output shows none).
 
 The checker loads only the Wasm and computes expected machine outputs in separate JavaScript. Its cube search
 closely follows the Python generator. Lean checks the supplied tables. `run-all.sh` invokes both the normal run and the control with a planted wrong verdict, and requires the control to fail on that verdict (`agreeing reports: verdict: got 0, wanted 1`), not merely to exit nonzero.
@@ -253,6 +250,13 @@ Each pair of distinct organs shares two corners. The stamp labels the lower-numb
 
 ### What this does not say
 
-*Truth* and *safety* are names for the two corners of a pair. Lean treats each check as a supplied value and assigns it no real-world meaning. In one model example both owners report `.pass` for a shared corner whose body value is `.fail`; in another one organ reports `.pass` for a private cell whose body value is `.unknown`; the stamp accepts both sets of reports. The function `go` reads reports. `judge_zero_means_go` is one direction: a zero from `judge` means the stamp accepts. The Lean file does not state that every accepted set of reports gives zero; `stamp.mjs` checks that only on its examples. A malformed packet (a byte other than 0, 1 or 2, or the wrong length) makes the shipped file's `judge` answer 4,294,967,295, so only a zero is an accept. Nothing requires a real system to call it before acting. We make no claim of novelty.
+*Truth* and *safety* are names for the two corners of a pair. Lean treats each check as a supplied value and assigns it no real-world meaning. In one model example both owners report `.pass` for a shared corner whose body value is `.fail`; in another one organ reports `.pass` for a private cell whose body value is `.unknown`; the stamp accepts both sets of reports. The function `go` reads reports. `Stamp.lean` states one direction (`judge_zero_means_go`: a zero from the Lean function `judge` means the stamp accepts); `StampBytes.lean` adds the other for a well-formed packet. Both are about the Lean function `judge`, not the shipped file; `stamp.mjs` checks the shipped file only on its examples. The Lean `judge` returns 4,294,967,295 for every malformed packet (a byte other than 0, 1 or 2, or the wrong length), and only zero denotes acceptance; on the five malformed examples in `check.mjs` the shipped file returned 4,294,967,295. These theorems impose no requirement that a real system call `go` or `judge` before acting. We make no claim of novelty.
+
+### What `StampBytes.lean` adds
+
+- `go_means_judge_zero` says that if a packet is well formed and the stamp accepts its decoded reports, the Lean function `judge` returns zero.
+- `judge_zero_iff` says that the Lean function `judge` returns zero exactly when the packet is well formed and the stamp accepts its five decoded reports. A well-formed packet contains exactly 130 bytes, each with value 0, 1 or 2. The stamp accepts exactly when both owners agree at every shared corner and every reported cell passes.
+
+These are statements about the Lean function `judge`. Verification of the compiled file is outside the scope of these proofs; On its examples, `stamp.mjs` checks the shipped `judge` result against values or ranges specified in JavaScript; some expected values use corner mappings read from the same Wasm file.
 
 To re-run the stamp check: `node skunkworks/proved/pentora-machine/stamp.mjs` (about 0.1 second; `run-all.sh` runs it and its control).

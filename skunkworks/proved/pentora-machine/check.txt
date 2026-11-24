@@ -66,4 +66,6 @@
 'Pentora.two_owners_can_force' depends on axioms: [propext, Classical.choice, Quot.sound]
 'Pentora.private_fault_can_be_hidden' depends on axioms: [propext, Classical.choice, Quot.sound]
 'Pentora.judge_zero_means_go' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Pentora.go_means_judge_zero' depends on axioms: [propext, Quot.sound]
+'Pentora.judge_zero_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
 exit 0
