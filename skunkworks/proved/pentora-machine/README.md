@@ -34,8 +34,9 @@ indices. It leaves the assignment of individual private slots to edge midpoints 
 - `gluing` proves that the reports agree at every shared corner exactly when some body has those five views.
   `view_glue` shows that the constructed body's views reproduce the reports, and `glue_unique` supplies uniqueness.
   Each pair of organs can compare two corners (`two_witnesses`).
-- A **seam** is a corner whose owners disagree. With four truthful reports and one false corner, both owners
-  are suspects. The faulty organ owns every disagreement (`corner_lie_caught` and `seam_names_liar`).
+- A **seam** is a corner whose owners disagree. With four organs truthful about one common body and one false corner,
+  both owners are suspects (by the definition of `suspects`, and observed in the run). The faulty organ owns every
+  disagreement (`seam_names_liar`); its co-owner contradicts a false corner (`corner_lie_caught`).
   If all disagreements involve the same neighbour, both remain suspects. A private-only change to agreeing
   reports leaves zero seams and zero suspects (`private_cells_unwitnessed`). Two owners can also report the
   same false value at a shared corner without producing a seam there.
@@ -50,7 +51,7 @@ indices. It leaves the assignment of individual private slots to edge midpoints 
   when all passed, 1 when at least one is unknown and none failed, and 2 when any failed.
   `view_cell_in_body` proves that a trit value occurring in a local view occurs in the body. This carries a
   local failure to the centre. The centre has no separate address digit.
-- The address encodes all 110 trits injectively. The largest address needs **175 bits**, which fits in 22 bytes.
+- The address encodes all 110 trits injectively. The largest address needs **175 bits** (arithmetic; the Lean statement is the 22-byte bound `fits_22_bytes`), which fits in 22 bytes.
   Each organ can check its own 26 trits against a supplied body. Changing another organ's private trit changes
   the address while preserving the first organ's view. Equal addresses give equal bodies (`address_injective`),
   hence equal centre health (`centre_of_address`).
@@ -72,7 +73,7 @@ The theorem gives no probabilities. For example, if all corners copy the same ra
 compute the sum as `20t mod 3`. Any caller with an agreeing buffer can read `seal()` directly.
 **Do not use this trit as a key or put secrets in it.**
 
-## Two figures and the flat faces (`Twin.lean`)
+## Two figures and the twelve five-point faces (`Twin.lean`)
 
 The golden flip sends φ to 1 - φ. These statements are about lists of listed points; none is about solid cubes.
 The two figures share a three-dimensional cube of 27 sampled cells. It is not a flat interface.
@@ -136,7 +137,7 @@ closely follows the Python generator. Lean checks the supplied tables. `run-all.
 and the control with a planted wrong verdict.
 
 The checker recorded 11,633 passing comparisons on its normal run and zero failures. It counted five rejected
-malformed cases separately. All 400 generated bodies agreed and matched their expected addresses. The faulty organ
+malformed cases separately. All 400 generated bodies (301 distinct) agreed and matched their expected addresses. The faulty organ
 was a suspect in all 391 corner-fault cases and the sole suspect in 241. All 391 recovered the expected corners
 with the faulty index supplied. Of 400 private assignments, 256 changed a trit (144 wrote the value already there) and all preserved the zero seam
 mask. The 400 generated bodies include 301 distinct ones. A review observation, not re-checked here: the
