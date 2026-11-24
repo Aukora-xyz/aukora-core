@@ -60,7 +60,7 @@ The first runs the v0.8 adapter's checks. The second runs selected release and l
 
 ## Rebuild
 
-The documented source rebuild targets **Apple-silicon macOS**, not Linux. Two documented v0.8 builds on the same Mac matched, but an independent empty-folder rebuild of the exact public export is not evidenced here. The platform's CI smoke checks are a separate result.
+The documented source rebuild targets **Apple-silicon macOS**, not Linux. Two documented v0.8 builds on the same Mac matched. On 24 November 2026 a second builder rebuilt v0.8 from an empty folder of the public export at commit 905ec2f, using the commands below, on one Apple-silicon Mac (toolchain fetch about 77 seconds, build about 15 minutes); both files were byte-identical to the pinned digests. It has not been repeated on other hardware or by an outside party. The platform's CI smoke checks are a separate result.
 
 You'll need Node 24, Python 3, the Xcode command-line tools, and the pinned Lean and WASI SDK toolchains. The optional fetch uses `curl`, `unzip` and `tar`, downloads about 540 MB and needs about 2.5 GB free. It checks each archive against a SHA-256 consistency pin before unpacking, then every kept file against the per-file pins. Use a separate empty directory for the toolchain and an unused build destination.
 

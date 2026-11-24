@@ -30,6 +30,12 @@ check_archive() {
         exit 1
     }
 }
+download() {
+    curl -fsL --retry 3 -o "$1" "$2" || {
+        echo "fetch-toolchain: download failed: $2" >&2
+        exit 1
+    }
+}
 lean_dir=lean-4.19.0-darwin_aarch64
 wasi_dir=wasi-sdk-25.0-arm64-macos
 layout=$(python3 - "$dir" "$lean_dir" "$wasi_dir" <<'PY'
@@ -64,13 +70,15 @@ CDPATH= cd -P "$dir"
 lean=https://github.com/leanprover/lean4/releases/download/v4.19.0/lean-4.19.0-darwin_aarch64.zip
 wasi=https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-25/wasi-sdk-25.0-arm64-macos.tar.gz
 lean_archive=${lean##*/}; wasi_archive=${wasi##*/}
+trap 'rm -f "$lean_archive" "$wasi_archive"' EXIT
+trap 'exit 1' HUP INT TERM
 if [ "$layout" = empty ]; then
     # Require all needed pins before downloading, and verify both archives before unpacking either.
     lean_digest=$(archive_digest "$lean_archive")
     wasi_digest=$(archive_digest "$wasi_archive")
-    curl -fL --retry 3 -o "$lean_archive" "$lean"
+    download "$lean_archive" "$lean"
     check_archive "$lean_archive" "$lean_digest"
-    curl -fL --retry 3 -o "$wasi_archive" "$wasi"
+    download "$wasi_archive" "$wasi"
     check_archive "$wasi_archive" "$wasi_digest"
     python3 - "$lean_archive" "$wasi_archive" <<'PY'
 import os, posixpath, subprocess, sys

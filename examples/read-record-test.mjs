@@ -39,6 +39,10 @@ const check = (label, result, predicate) => {
   if (!ok) console.log(result.error ?? `${result.status}: ${result.stdout}${result.stderr}`);
 };
 try {
+  const source = readFileSync(new URL('./read-record.mjs', import.meta.url), 'utf8');
+  const header = source.match(/^(?:\/\/[^\n]*\n)+/)?.[0] ?? '';
+  const codes = Array.from(header.matchAll(/^\/\/ (\d+) = .+$/gm), match => match[1]);
+  report('reader header lists every exit code', codes.join(' ') === '0 1 2 3 4 5 64');
   const args = ['--expect-head', head];
   const matched = run('examples/sample-record.txt', ...args);
   check('sample matches its expected head', matched, r =>
@@ -50,7 +54,7 @@ try {
   changed[2] = frame.toString('hex');
   const changedFile = join(dir, 'changed.txt'); writeFileSync(changedFile, changed.join('\n') + '\n');
   check('changed frame cannot match', run(changedFile, ...args), r =>
-    r.status === 1 && r.stdout === 'frame 2 is refused by the core\n' && !r.stderr);
+    r.status === 4 && r.stdout === 'frame 2 is refused by the core\n' && !r.stderr);
   const shorterFile = join(dir, 'shorter.txt'); writeFileSync(shorterFile, sample.trim().split('\n').slice(0, -1).join('\n') + '\n');
   const shorter = run(shorterFile, ...args);
   check('shorter valid record has a head mismatch', shorter, r =>
@@ -84,6 +88,9 @@ try {
     writeFileSync(recordFile, record);
     check(label, run(recordFile, ...args), r => r.status === 1 && !r.stdout && r.stderr === `malformed record: ${reason}\n`);
   }
+  writeFileSync(recordFile, sampleLines[0] + '\n00\n');
+  check('refused start exits 4', run(recordFile, ...args), r =>
+    r.status === 4 && r.stdout === 'the start is refused\n' && !r.stderr);
   writeFileSync(recordFile, [sampleLines[0], ...sampleLines.slice(1).map(line => line.toUpperCase())].join('\n'));
   check('uppercase hex and no trailing newline replay', run(recordFile, ...args), r => r.status === 0 && r.stdout === matched.stdout);
   for (const file of [join(dir, 'missing'), dir]) {
@@ -117,6 +124,8 @@ try {
     `owner approval (both signatures, one use): deliver hex ${'ff'.repeat(60)}… (61 bytes in all), audience "mail", generation 0, nonce 1, through frame 6 inclusive`);
   check('explicit pinned v0.8 core matches', run('examples/sample-record.txt', ...args, '--core', 'v0.8/aukora-core-lite.wasm'), r =>
     r.status === 0 && r.stdout === matched.stdout);
+  check('unreadable core exits 5', run('examples/sample-record.txt', ...args, '--core', join(dir, 'missing')), r =>
+    r.status === 5 && !r.stdout && r.stderr === 'cannot read core file\n');
   check('different Wasm is refused by the pin', run('examples/sample-record.txt', ...args, '--core', 'v0.8/aukora-core.wasm'), r =>
-    r.status === 1 && r.stdout.trim() === 'not the pinned core file: refusing to run it');
+    r.status === 5 && r.stdout.trim() === 'not the pinned core file: refusing to run it');
 } finally { rmSync(dir, { recursive: true, force: true }); }
