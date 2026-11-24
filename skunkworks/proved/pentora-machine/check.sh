@@ -11,12 +11,16 @@ check_lean() {
     LEAN_PATH="$G/work" "$LEAN" -j1 --root="$G" -o work/Sharper.olean Sharper.lean || return $?
     LEAN_PATH="$G/work" "$LEAN" -j1 --root="$G" -o work/Stamp.olean Stamp.lean || return $?
         LEAN_PATH="$G/work" "$LEAN" -j1 --root="$G" -o work/StampBytes.olean StampBytes.lean || return $?
-    LEAN_PATH="$G/work" "$LEAN" -j1 --root="$G" -o work/Degraded.olean Degraded.lean || return $?
+        LEAN_PATH="$G/work" "$LEAN" -j1 --root="$G" -o work/Degraded.olean Degraded.lean || return $?
+    LEAN_PATH="$G/work" "$LEAN" -j1 --root="$G" -o work/Survives.olean Survives.lean || return $?
+
 
     LEAN_PATH="$G/work" "$LEAN" -j1 Axioms.lean || return $?
     LEAN_PATH="$G/work" "$LEAN" -j1 AxiomsStamp.lean || return $?
         LEAN_PATH="$G/work" "$LEAN" -j1 AxiomsStampBytes.lean || return $?
-    LEAN_PATH="$G/work" "$LEAN" -j1 AxiomsDegraded.lean || return $?
+        LEAN_PATH="$G/work" "$LEAN" -j1 AxiomsDegraded.lean || return $?
+    LEAN_PATH="$G/work" "$LEAN" -j1 AxiomsSurvives.lean || return $?
+
 
 }
 status=0

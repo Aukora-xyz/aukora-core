@@ -153,7 +153,7 @@ followed by eight corners in slot order. Input codes are 0 for failed, 1 for unk
 
 ## What was checked
 
-The seven Lean files that `check.sh` checks declare 97 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in `Twin.lean`, 9 in `Sharper.lean`, 12 in `Stamp.lean`, 2 in `StampBytes.lean`, 6 in `Degraded.lean`). Two more files, `Rule.lean` (9) and `ArkPairs.lean` (6), make 112 in all; each is checked by its own optional script (`check-rule.sh`, `check-arkpairs.sh`), and their audits are in `check-rule.txt` and `check-arkpairs.txt`, not in the figures below. The stored axiom audit (`check.txt`) lists 76 of the 97
+The eight Lean files that `check.sh` checks declare 103 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in `Twin.lean`, 9 in `Sharper.lean`, 12 in `Stamp.lean`, 2 in `StampBytes.lean`, 6 in `Degraded.lean`, 6 in `Survives.lean`). Two more files, `Rule.lean` (9) and `ArkPairs.lean` (6), make 118 in all; each is checked by its own optional script (`check-rule.sh`, `check-arkpairs.sh`), and their audits are in `check-rule.txt` and `check-arkpairs.txt`, not in the figures below. The stored axiom audit (`check.txt`) lists 82 of the 103
 and 18 list no axioms. It lists no axioms for the six geometry results, none for ten of the eleven `Twin.lean` results (`majority_true` lists
 `propext`), and none for `address_bits`. Twelve audited results use `Classical.choice`: `seams_nil_iff`, `no_seam_one_body`, seven in `Stamp.lean` (`go_iff`, `one_part_cannot_force_go`, `honest_go`, `any_part_can_stop`, `two_owners_can_force`, `private_fault_can_be_hidden`, `judge_zero_means_go`) `judge_zero_iff` in `StampBytes.lean`, and `go_gives_go4` and `offline_neighbour_can_force` in `Degraded.lean`. The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean files checked by `check.sh` and `check-rule.sh` contain no `sorry` (the check output shows none).
 
@@ -299,3 +299,18 @@ How it is checked. `check-arkpairs.sh` takes the definitions of `core/Ark.lean` 
 inverses; it does not use ARK's general theorem `every_four_rows`. Checking `core/Ark.lean` in full was tried on the laptop this was written on and stopped by a 4 GB memory limit (an author-reported observation). The script refuses to run if the text it takes from `core/Ark.lean` differs from the text `ArkPairs.lean` was checked against (a pinned SHA-256 of that text). This script does not check `every_four_rows`.
 
 Checking `ArkPairs.lean` took 13 seconds and 0.79 GB on one laptop (a second run by the file's author: 12 seconds and 0.61 GB); `check-arkpairs.sh` is not part of `run-all.sh`.
+
+## What still holds with one organ offline (`Survives.lean`)
+
+In `Premises g R x y`, organ `x` is offline (its report is unconstrained), `y` is a different organ, and every cell of each of the four online reports is `pass`, including `y`'s report. The three organs other than `x` and `y` report their true views of the same body `g`; `y`'s report is all `pass` but may differ from its true view. The statements below hold whenever the premises hold for some online `y`. A receiver who knows `x` can then name the 12 corners whose two owners are online and conclude that each passes in the body; at least 18 of the 20 body corners pass in total. Neither conclusion requires identifying `y`.
+
+- `named_corners` proves that under these premises, each corner whose two owners are online passes in the body.
+- `named_corners_count` counts exactly 12 corners whose two owners are online, for every choice of offline organ `x`.
+- `at_least_18` proves that under these premises, every nonpassing corner belongs to both `x` and `y`, and at least 18 of the 20 corners pass in the body.
+- `two_can_fail` gives a body and reports satisfying the premises in which both corners shared by `x` and `y` fail to pass and exactly 18 corners pass.
+- `no_private_named` gives, for each choice of `x` and each private cell, a body and reports satisfying the premises in which that cell fails to pass. For an online cell, the witness takes its owner as `y`. For a cell of `x`, the witness uses a distinct online `y`.
+- `at_least_54` proves that under these premises, every private cell of the three organs other than `x` and `y` passes in the body, so at least 54 of the 90 private cells pass.
+
+### What this does not say
+
+A corner is “named as passed” only under the stated premises. These Lean statements cover at most one arbitrary online organ and make no claim about two arbitrary organs. The shipped wasm exports no `go4` function; `degraded.mjs` checks its own JavaScript implementation of `go4`.
