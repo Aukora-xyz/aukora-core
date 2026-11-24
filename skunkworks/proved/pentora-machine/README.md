@@ -9,7 +9,10 @@ Run these commands from the repository root.
 
     node skunkworks/proved/pentora-machine/check.mjs
     node skunkworks/proved/pentora-machine/check.mjs control    # a planted wrong expectation must fail
-    LEAN=/path/to/lean-4.19.0/bin/lean sh skunkworks/proved/pentora-machine/check.sh
+        LEAN=/path/to/lean-4.19.0/bin/lean sh skunkworks/proved/pentora-machine/check.sh
+    LEAN=/path/to/lean-4.19.0/bin/lean sh skunkworks/proved/pentora-machine/check-rule.sh    # optional, heavier: see "A rule on six whole numbers"
+
+With the toolchain fetched as the root README describes, `LEAN=toolchain/lean-4.19.0-darwin_aarch64/bin/lean` works for both Lean scripts (one outside run).
 
 ## The sampled geometry
 
@@ -119,7 +122,7 @@ The two figures share a three-dimensional cube of 27 sampled cells. It is not a 
   the five corners only.
 - `face_fits_a_byte`: 3^5 < 256.
 
-`twin.py` recomputes the same listed-point facts in exact arithmetic.
+`twin.py` recomputes the same listed-point facts in exact arithmetic. Run `python3 gen.py` first, in the same folder: it writes `tables.json`, which `twin.py` reads (it fails without it).
 
 ## The Wasm interface
 
@@ -170,7 +173,7 @@ comparison exercises the shipped bytes. No live integration or outside rebuild i
 A field here is a polynomial in x, y, z read on the unit sphere. Degree at most L means (L + 1)² independent
 numbers. A set of sample directions DETERMINES degree L when two such fields that agree in every direction of the
 set are the same field. `parts.py` computes this for parts of the figure, exactly, using pairs of fractions to stand for numbers of the form a + b·φ (φ the golden ratio)
-(about a minute); its output is `parts.txt`.
+(about 45 to 60 seconds); its output is `parts.txt`.
 
 | Sample directions | Cells | Determines degree | Numbers |
 | --- | --- | --- | --- |
@@ -200,7 +203,7 @@ arithmetic. (3) Under exact, noiseless measurements and the stated degree bound,
 decoder for wrong reports. (5) This computation examines only the sample directions. (6) It has not been checked
 for novelty.
 
-To re-run it: `python3 skunkworks/proved/pentora-machine/parts.py` (about 45 seconds, Python 3 standard library only) and compare with `parts.txt`. It is not part of `run-all.sh`.
+To re-run it: `python3 skunkworks/proved/pentora-machine/parts.py` (about 45 to 60 seconds, Python 3 standard library only) and compare with `parts.txt`. It is not part of `run-all.sh`.
 
 ## A rule on six whole numbers (`Rule.lean`)
 
@@ -225,7 +228,7 @@ numbers are even, and half the point less (1, 1, 1) is in that lattice.
 
 What this does not say. It is a second, table-free definition of the same 110 points; a stored table answers
 membership too. The proof is a bound plus a finite check; it gives no geometric derivation of the rule. "Six whole numbers" is how these coordinates
-are written; no statement about a six-dimensional lattice or projection is made. The maintainers measured 48 seconds and 2.79 GB peak (macOS `/usr/bin/time -l`) for checking this file on one laptop (the stored audit does not record those figures), heavier than the other checks, so it is checked separately by the optional `check-rule.sh` (its audit is `check-rule.txt`) and is not part of `run-all.sh`. The
+are written; no statement about a six-dimensional lattice or projection is made. The maintainers measured 48 seconds and 2.79 GB peak (macOS `/usr/bin/time -l`) for checking this file on one laptop, and an outside run on the same laptop took 31 seconds and 2.75 GB (the stored audit does not record those figures), heavier than the other checks, so it is checked separately by the optional `check-rule.sh` (its audit is `check-rule.txt`) and is not part of `run-all.sh`. The
 rule itself was suggested by an outside review; the Lean statement, its proof and the enumeration were written here.
 We make no claim of novelty. To re-run the enumeration: `python3 skunkworks/proved/pentora-machine/rule.py`.
 
