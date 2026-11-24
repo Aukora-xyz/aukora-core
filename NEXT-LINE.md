@@ -89,14 +89,20 @@ it is not one, because nothing forces a real system to route through it.
   through a judged upgrade.
 - `proved/cordis-lean/`: five small theorems about revertible effects, a sketch written while reading published
   work on the idea. It is ours, it is a sketch, and it claims nothing about anyone else's system.
-- `proved/pentora-machine/`: five cubes in a dodecahedron, built in exact arithmetic and checked in the kernel (every
-  corner in exactly two cubes, every two cubes sharing exactly two corners, 110 outer cells), and a machine on it:
-  five organs each report one cube, agreeing reports have exactly one body behind them, a single false organ is named
-  by its neighbours and its 20 shared cells are given back by the other four, a value spread over the corners is
-  known to any four organs and to no three, and the whole body is a 22-byte address. The figure and its golden-flip
-  twin share exactly one cube, the rational one, and each flat face carries all five cubes once. 50 theorems; the
-  machine is compiled to a 151 KB Wasm file; `run-all.sh` compares that file with plain code. An instrument: its verdict carries no authority
-  and nothing uses it yet.
+- `proved/pentora-machine/` checks 20 listed vertices and five cube distance signatures in Lean. Among the 110
+  sampled outer cells, only corners are shared. All five cubes also share the origin. Agreeing reports describe
+  one unique body with a lossless 22-byte address. With four truthful organs, one false corner makes both owners
+  suspects. The faulty organ owns every disagreement and is the sole suspect when two different neighbours are
+  involved. A private-only change to agreeing reports gives zero suspects. Given the excluded index and a valid
+  fifth report as filler, `heal` reads all 20 global corners from the four truthful reports, including the
+  excluded organ's eight. Its 18 private cells remain unknown, and the call writes nothing. Any four truthful
+  views determine the seal trit. Every possible three-organ view is compatible with all three values
+  (possibilistic hiding). Do not use this trit as a key or put secrets in it. `Twin.lean` adds a golden-flipped second figure: the two figures' lists of cell points share
+  exactly 27 points, all in cube 0 (listed points, not solid cubes), a majority-of-three law, and twelve listed
+  five-point sets that each meet every listed cube. The three Lean files declare 68
+  theorems including helpers, and the stored axiom audit lists 50. The lab reports compiling the executable
+  definitions to Wasm. `run-all.sh` runs the JavaScript comparison and its planted control. The verdict carries
+  no authority. No live integration or outside rebuild is documented here.
 - `delegation-exhibit/`, `bubble/`, `alibi/`: exhibits of delegation receipts and of two ways to show what a record
   did NOT contain. `alibi/` checks that an item is not in a committed set; it does not show that every read was
   logged.

@@ -2,6 +2,7 @@ import Pentora
 import Entry
 import Twin
 open Pentora
+-- Selected axiom audit: 39 of the 57 theorem declarations in Pentora.lean and Entry.lean, including helpers in the total.
 #print axioms twenty_vertices
 #print axioms five_cubes
 #print axioms each_corner_in_two

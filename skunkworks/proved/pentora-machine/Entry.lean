@@ -1,6 +1,7 @@
 import Pentora
-/-! The door between the Wasm file and the laws of `Pentora.lean`. Input: 130 bytes, five reports of 26 cells each
-(18 private cells, then 8 corners in the order of `slot`); a cell is 0 (failed), 1 (unknown) or 2 (passed). -/
+/-! The handwritten Wasm shim accepts `reset()` followed by 130 calls to `input(byte)`. These definitions read
+five reports in organ order, each with 18 private trits followed by eight corners in the order of `slot`.
+A valid trit is 0 (failed), 1 (unknown) or 2 (passed). -/
 namespace Pentora
 
 def tritOf (x : UInt8) : Trit := if x = 0 then .fail else if x = 1 then .unknown else .pass
@@ -11,8 +12,8 @@ def reportOf (b : ByteArray) (c : Fin 5) : Report :=
 /-- The five healths as one number in base three, organ 0 lowest. -/
 def healths (R : Fin 5 → Report) : Nat := (fins 5).foldr (fun c acc => health (cellsOf (R c)) + 3 * acc) 0
 
-/-- WHAT "NO DISAGREEMENT" MEANS FOR THE BYTES THE FILE WAS GIVEN: one body stands behind the five reports, and
-    it is the only one. -/
+/-- Seam-free decoded reports are the views of a unique body. The premise is about `reportOf b` alone.
+    The separate `wellFormed` check in `judge` rejects malformed packets even when their decoded reports agree. -/
 theorem no_seam_one_body (b : ByteArray) (h : seams (reportOf b) = []) :
     (∀ c, view (glue (reportOf b)) c = reportOf b c) ∧
     ∀ g, (∀ c, view g c = reportOf b c) → g = glue (reportOf b) :=
@@ -31,7 +32,8 @@ theorem no_seam_one_body (b : ByteArray) (h : seams (reportOf b) = []) :
 @[export pentora_seams] def seamMask (b : ByteArray) : UInt32 :=
   if wellFormed b then ((seams (reportOf b)).foldl (fun (acc : Nat) (v : Fin 20) => acc + 2 ^ v.val) 0).toUInt32 else 0xFFFFFFFF
 
-/-- Bit c is set when organ c owns every disagreeing corner. -/
+/-- For a valid packet with no seams the mask is zero. Otherwise, on valid input, bit c is set exactly when
+    organ c owns every disagreeing corner. -/
 @[export pentora_suspects] def suspectMask (b : ByteArray) : UInt32 :=
   if wellFormed b then ((suspects (reportOf b)).foldl (fun (acc : Nat) (c : Fin 5) => acc + 2 ^ c.val) 0).toUInt32 else 0xFFFFFFFF
 
@@ -47,7 +49,7 @@ theorem no_seam_one_body (b : ByteArray) (h : seams (reportOf b) = []) :
     (tally (Trit.ofCode t.toNat) (cellsOf (reportOf b ⟨c.toNat, h.2.1⟩))).toUInt32
   else 0xFFFFFFFF
 
-/-- The first (w = 0) or second owner of corner v. -/
+/-- Selector zero returns the first owner of corner v. Any nonzero selector returns the second. -/
 @[export pentora_owner] def ownerOf (v w : UInt32) : UInt32 :=
   if h : v.toNat < 20 then
     (if w = 0 then (home1 ⟨v.toNat, h⟩).1.val else (home2 ⟨v.toNat, h⟩).1.val).toUInt32
@@ -61,11 +63,14 @@ theorem no_seam_one_body (b : ByteArray) (h : seams (reportOf b) = []) :
 @[export pentora_seal] def sealByte (b : ByteArray) : UInt32 :=
   if wellFormed b && (seams (reportOf b)).isEmpty then (sealOf (glue (reportOf b))).toUInt32 else 0xFFFFFFFF
 
-/-- The centre of the one body behind agreeing reports: 0 all passed, 1 something unknown, 2 something failed. -/
+/-- Centre health over the agreeing body's 110 cells is 0 for all passed, 1 for unknown with no failure,
+    and 2 for any failure. Disagreement returns 0xFFFFFFFF. -/
 @[export pentora_centre] def centreByte (b : ByteArray) : UInt32 :=
   if wellFormed b && (seams (reportOf b)).isEmpty then (centre (glue (reportOf b))).toUInt32 else 0xFFFFFFFF
 
-/-- Corner v with organ x overruled: its value as told by its owner that is not x. -/
+/-- Read corner v from an owner other than the supplied index x. All five reports must be valid, including
+    filler for x. With the other four truthful this recovers any of the 20 corners. The call writes nothing
+    and leaves the 18 private cells of x unknown. -/
 @[export pentora_heal] def healByte (b : ByteArray) (x v : UInt32) : UInt32 :=
   if h : wellFormed b = true ∧ x.toNat < 5 ∧ v.toNat < 20 then
     (heal (reportOf b) ⟨x.toNat, h.2.1⟩ ⟨v.toNat, h.2.2⟩).code.toUInt32

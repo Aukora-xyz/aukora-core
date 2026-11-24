@@ -1,105 +1,137 @@
 # The Pentora machine: five cubes, shared corners, one body. 24 November 2026
 
-A dodecahedron holds five cubes. Each cube has 27 cells; each cell holds one of three values. The cubes overlap only
-at their corners, and that overlap has an exact shape. This folder builds the figure in exact arithmetic, proves its
-shape in the Lean kernel, proves what the overlap is good for, and compiles the result to a WebAssembly file anyone
-can run.
+Five organs each report the outer cells of one cube in a dodecahedron. Among the sampled outer cells, only corners
+are shared. All five cubes also share the origin. When both owners of every corner agree, the five reports describe
+exactly one body. Its 110 trits fit in a 22-byte address. Each organ supplies its own check results. The machine's
+verdict carries no authority.
 
-    node skunkworks/proved/pentora-machine/check.mjs            # the compiled file against plain code (Node only)
-    node skunkworks/proved/pentora-machine/check.mjs control    # must FAIL
-    LEAN=/path/to/lean-4.19.0/bin/lean sh check.sh              # the proofs again, about twenty seconds
+Run these commands from the repository root.
 
-## The figure (`Pentora.lean`, part 1; these six theorems use NO axioms)
-Coordinates are numbers a + b·φ with whole a and b (φ² = φ + 1). No decimals, no rounding.
-- `twenty_vertices`: 20 different points, all at the same distance from the centre.
-- `five_cubes`: each of the five listed sets of eight is a cube (every corner sees three others at an edge, three
-  across a face and one across the body).
-- `each_corner_in_two`: every corner belongs to exactly two cubes.
-- `each_pair_shares_two`: every two cubes share exactly two corners.
-- `cube_has_27`: each cube has 12 edge middles, 6 face centres, 8 corners and one centre, the same centre for all.
-- `figure_110`: the 90 edge and face cells are all different points and different from the 20 corners, so the figure
-  has 110 outer cells and ONLY the corners are shared; they lie on three shells (30, 60 and 20 cells).
+    node skunkworks/proved/pentora-machine/check.mjs
+    node skunkworks/proved/pentora-machine/check.mjs control    # a planted wrong expectation must fail
+    LEAN=/path/to/lean-4.19.0/bin/lean sh skunkworks/proved/pentora-machine/check.sh
 
-## The machine (`Pentora.lean`, part 2)
-Five organs. Each reports its own cube: 18 private cells and 8 corners, every cell failed, unknown or passed. A corner
-is therefore reported twice, once by each of the two organs that share it.
-- `gluing`, `view_glue`, `glue_unique`: five reports agree at the shared corners exactly when ONE body stands behind
-  all five, and then there is only one such body.
-- `two_witnesses`: every two organs share exactly two corners, so every pair of organs checks each other twice.
-- `corner_lie_caught`: an organ that misreports a corner is contradicted there by the corner's other owner, if that
-  owner reports truly.
-- `seam_names_liar`, `liar_among_suspects`: if only one organ misreports, every disagreement is at one of its
-  corners, and it is always among the suspects (the organs that own every disagreeing corner).
-- `convicted`: two disagreeing corners with one common owner leave that owner as the only suspect.
-- `private_cells_unwitnessed`: THE LIMIT. Agreement reads only the corners. What an organ says about its 18 private
-  cells is its own word and no other organ can contradict it.
-- `triangle`, `organ_triangle`: passed + unknown + failed is always 26 for an organ: its health is a point in a
-  triangle (a fixed total split three ways). `health_zero_iff`, `health_two_iff`: health 0 means every cell passed,
-  health 2 means some cell failed.
-- `address_injective`, `address_lt`, `fits_22_bytes`: the 110 cells of the body read as one number in base three
-  fit in 22 bytes (and not in 21), and the number IS the state: two bodies with the same address are the same body.
-## Three levels of knowing (`Pentora.lean`, part 3)
-A private cell has one owner. A corner has exactly two. The centre belongs to all five cubes. From "exactly two":
-- `four_see_all`, `heal_true`: SELF-HEALING. Any four organs hold every one of the 20 corners. If one organ lies, is
-  broken or is silent, the other four give back all 20 true corners.
-- `seal_known_to_four`, `seal_hidden_from_three`: THE SEAL. Let the seal be the sum of the 20 corners, counted in
-  threes. Any four organs know it. Any three do not: whatever three organs see, there is a body that looks exactly
-  the same to them with ANY seal you name. So a value can be kept by the five so that no three of them, a majority,
-  can read it, and any four can. This is a known construction (replicated secret sharing, four of five); what is
-  proved here is that this figure carries it, because every two organs own a corner nobody else owns (`blind_corner`).
-- `centre_zero_iff`, `local_fail_reaches_centre`, `centre_of_address`: THE CENTRE. The one cell of all five cubes has
-  no digit in the address. It is read off the other 110: clear exactly when every cell passed, failed as soon as any
-  one organ sees a failure, and fixed by the address, so nothing can set it by itself.
-## Two figures, and the faces (`Twin.lean`, part 4; ten of its eleven theorems use NO axioms)
-The golden flip sends φ to 1 - φ. It keeps every whole-number relation, so it turns the figure into a second figure
-of the same kind (`twin_is_a_pentora`).
-- `flip_fixes_cube0`, `two_figures_share_one_cube`, `rational_cells_are_cube0`: WHERE TWO FIGURES MEET. The figure and
-  its twin have exactly 27 cells in common: one whole cube, with its 8 corners, 12 edge middles, 6 face centres and
-  the centre. Those 27 are exactly the cells whose coordinates are whole numbers. Everything the two share is
-  rational; every cell that needs φ belongs to one side only.
-- `shared_corner_three_owners`, `majority_true`: at the shared cube every corner has THREE owners (the shared cube and
-  one cube of each figure), and two of three is the truth when at most one is wrong. Inside one figure a false owner
-  is caught; where two figures meet it is also overruled on the spot.
-- `twelve_faces`, `face_meets_every_cube_once`, `face_has_five_pairs`, `corner_in_three_faces`, `face_fits_a_byte`:
-  THE FLAT FACES. Each of the 12 flat faces carries all five cubes, once each: a diagonal of the pentagon is an edge
-  of a cube. Five cells, five different pairs of owners, 243 states: one byte. A face is the smallest flat reading
-  of the whole body, and every organ is on it.
-`twin.py` computes the same facts a second time in exact arithmetic (RAN: 12 faces, 27 shared cells, 195 in the pair).
-50 theorems in all; 17 use no axioms, the rest `propext`, `Quot.sound`, and `Classical.choice` in two (`check.txt`).
-No `sorry`.
+## The sampled geometry
 
-## The compiled file (RAN)
-`pentora.wasm`: 151,039 bytes, no imports, SHA-256
-`f735a7f915b97c80a7fbca9b6450ff72733f549207702aba3a8b54f8ced3596f`, compiled from `Pentora.lean` and `Entry.lean`
-by the same route as the core's small file (Lean to C to WebAssembly; `interface.c` is all the C that was written).
-Input: 130 bytes, five reports of 26 cells (0 failed, 1 unknown, 2 passed). `judge()` answers 0 to 242 (the reports
-agree; the five healths in base three), 256 + v (the two owners of corner v disagree), or 0xFFFFFFFF (not that
-shape). `seams()`, `suspects()`, `addressByte(i)`, `tally(c, t)`, `seal()`, `centre()`, `heal(x, v)`, `owner(v, w)`,
-`vertex(c, j)` give the rest.
-`check.mjs` rebuilds the five cubes on its own, in exact arithmetic, and compares: 11,633 checks, 0 failed, on 400
-generated bodies, 391 single liars (each among the suspects, 241 convicted alone, all 391 healed by the other four),
-400 private changes (unseen, as the limit says), 400 seals hidden from three organs, 5 malformed inputs; a planted wrong expectation is reported. The figure is thus computed by three
-programs: `gen.py`, `check.mjs` and the Lean kernel.
+The six geometry theorems in `Pentora.lean` check the listed points and tables in exact arithmetic. Coordinates
+have the form a + b·φ for integers a and b, with φ² = φ + 1.
 
-## What this is for
-One word of 22 bytes that says how a five-part system stands, that each part can check from its own cube, in which a
-single false part is named by its neighbours and repaired by them, and whose shared layer can hold a value that no
-three parts can read. It fits in a line of a record.
+- `twenty_vertices` checks that the 20 listed points are distinct and all have squared radius 3.
+- `five_cubes` checks five lists of eight vertices. From each vertex the other seven have the cube's distance
+  signature, with three at squared distance 4, three at 8 and one at 12.
+- `each_corner_in_two` and `each_pair_shares_two` check both incidence counts. Each corner has two owners,
+  and each pair of distinct cubes shares two corners.
+- `cube_has_27` checks 12 edge midpoints, six face centres and the common origin for each cube.
+  Together with the eight corners, these give 27 sampled cells per cube.
+- `figure_110` checks 110 distinct outer cells. The three shells contain 30 face centres, 60 edge midpoints
+  and 20 corners. These counts describe the samples. The intersection of the solid cubes is outside their scope.
 
-## NOT proved, NOT done
-1. The laws are about the Lean text. The compiled file is compared with plain code; that is evidence, not proof.
-2. The seal here is one value of three per body. `seal_hidden_from_three` says three organs' views rule no value
-   out; it does not speak of probabilities, of timing, or of what the organs learn another way. It is not a new kind
-   of cryptography and it is not a hash: the address is the state itself, 174 bits and no more.
-3. Two organs that both own a corner can misreport it together, unseen. With disagreements at one neighbour only,
-   there are two suspects, not one. `liar_among_suspects` assumes every other organ reports truly.
-4. Any layout in which every shared cell has exactly two owners has the gluing and fault laws. What this figure adds,
-   and what is proved for it, is that every pair has exactly two witnesses, with nothing shared three ways. It is not
-   claimed that this beats another layout with the same property.
-5. It is an instrument. A verdict carries no authority, the core's record machine does not use it, and it is wired
-   into no live system. What the cells MEAN (which checks an organ runs) is not part of this file.
-6. Which cube is the rational one depends on how the figure is placed; turning it makes any of the five the shared
-   one. Part 4 is counting and one voting law. No machine for two bodies is compiled yet, and there is no protocol.
-   Nothing in this folder is a hash, a compression method or a reader of images.
-7. The WebAssembly file was built in the lab; the build needs the lab's small runtime, which is not in this tree.
-   Nobody outside has rebuilt it.
+## Reports, faults and the address
+
+An organ reports 18 numbered private trits followed by eight corners. The model gives the corners geometric
+indices. It leaves the assignment of individual private slots to edge midpoints or face centres unspecified.
+
+- `gluing` proves that the reports agree at every shared corner exactly when some body has those five views.
+  `view_glue` shows that the constructed body's views reproduce the reports, and `glue_unique` supplies uniqueness.
+  Each pair of organs can compare two corners (`two_witnesses`).
+- A **seam** is a corner whose owners disagree. With four truthful reports and one false corner, both owners
+  are suspects. The faulty organ owns every disagreement (`corner_lie_caught` and `seam_names_liar`).
+  If all disagreements involve the same neighbour, both remain suspects. A private-only change to agreeing
+  reports leaves zero seams and zero suspects (`private_cells_unwitnessed`). Two owners can also report the
+  same false value at a shared corner without producing a seam there.
+- With four truthful organs and disagreements involving two different neighbours, `liar_among_suspects` and
+  `convicted` together identify the faulty organ. The first proves membership when there is a seam. The second
+  says every suspect equals the proposed owner. That conclusion holds even for an empty suspect list, and its
+  common-owner premise holds vacuously for disjoint owner pairs.
+- The passed, unknown and failed tallies sum to 26 per report. Their triple is the triangle point
+  (`triangle`, `organ_triangle`). Centre health is computed over the 110 cells of an agreeing body. It is 0
+  when all passed, 1 when at least one is unknown and none failed, and 2 when any failed.
+  `view_cell_in_body` proves that a trit value occurring in a local view occurs in the body. This carries a
+  local failure to the centre. The centre has no separate address digit.
+- The address encodes all 110 trits injectively. The largest address needs **175 bits**, which fits in 22 bytes.
+  Each organ can check its own 26 trits against a supplied body. Changing another organ's private trit changes
+  the address while preserving the first organ's view. Equal addresses give equal bodies (`address_injective`),
+  hence equal centre health (`centre_of_address`).
+
+## What four or three reports determine
+
+Two distinct owners per corner give four-organ coverage. Exactly two corners per pair explain why any three miss
+two. For two distinct omitted organs, `blind_corner` selects a corner owned by that pair.
+
+Given the excluded organ's index, `heal` reads all 20 global corners from the four truthful reports, including that
+organ's eight corners (`four_see_all`, `heal_true`). The Wasm call reads one corner at a time and requires a fifth
+valid report as filler. The excluded organ's 18 private cells remain unknown. The call writes nothing.
+
+The **seal** is the sum of the 20 corner trits modulo three. Any four organs can read this trit from their
+truthful local views. Every possible three-organ view is compatible with all three values. For each target,
+`seal_hidden_from_three` sets one unseen corner to a value that gives that sum and preserves the three views.
+This is possibilistic hiding.
+The theorem gives no probabilities. For example, if all corners copy the same random trit `t`, even one organ can
+compute the sum as `20t mod 3`. Any caller with an agreeing buffer can read `seal()` directly.
+**Do not use this trit as a key or put secrets in it.**
+
+## Two figures and the flat faces (`Twin.lean`)
+
+The golden flip sends φ to 1 - φ. These statements are about lists of listed points; none is about solid cubes.
+
+- `twin_is_a_pentora`: the 20 flipped points are all different, and the same five index lists pass the same
+  distance test there.
+- `flip_fixes_cube0`: the listed vertices unchanged by the flip are exactly the eight of cube 0.
+- `two_figures_share_one_cube`: each figure's list of cell points (the corners and the middles of all corner pairs
+  of each listed cube, at four times size) has 111 points. Exactly 27 points are in both lists, and all 27 are cell
+  points of cube 0.
+- `rational_cells_are_cube0`: exactly 27 of the figure's 111 cell points have no φ part, and all of them are cell
+  points of cube 0. Which cube is "the rational one" depends on the coordinates chosen.
+- `shared_corner_three_owners`: each corner of cube 0 lies in exactly one of the other four listed cubes. ("Three
+  owners" in a pair of figures is arithmetic, one shared cube plus one cube of each figure; it is not a theorem
+  about two figures.)
+- `majority_true`: for values a, b, c and t, if at least two of a, b, c equal t then `maj a b c = t`. No machine for
+  two figures exists in Lean or in the Wasm file.
+- `twelve_faces`, `face_meets_every_cube_once`, `face_has_five_pairs`, `corner_in_three_faces`: the 12 listed
+  five-point sets pass a distance test (two neighbours at the edge length and two at squared distance 4); each
+  shares exactly two points with each listed cube; their five points have five different owner pairs; each listed
+  vertex is in three of them. Flatness (coplanarity) is not checked in Lean, and `twin.py` does not check it either.
+- `face_fits_a_byte`: 3^5 < 256.
+
+`twin.py` recomputes the same listed-point facts in exact arithmetic.
+
+## The Wasm interface
+
+`interface.c` is the handwritten shim. The shipped `pentora.wasm` is 151,039 bytes, has zero imports and exports
+the 12 functions below. Its SHA-256 is `f735a7f915b97c80a7fbca9b6450ff72733f549207702aba3a8b54f8ced3596f`.
+
+Call `reset()`, then call `input(byte)` 130 times. Send five reports in organ order, each with 18 private trits
+followed by eight corners in slot order. Input codes are 0 for failed, 1 for unknown and 2 for passed.
+`no_seam_one_body` applies to the **decoded reports**. Its premise tests for seams and omits `wellFormed` and
+`judge`. For example, 130 bytes of value 3 decode to passes under `reportOf`, but `judge()` rejects the packet.
+
+| Call | Result |
+| --- | --- |
+| `judge()` | On agreement, 0 through 242 encode the five organ healths in base three, organ 0 lowest. On disagreement, 256 plus the lowest disputed corner index. Malformed input returns `0xFFFFFFFF`. |
+| `seams()` | Bit `v` is set for each disputed corner. |
+| `suspects()` | Zero when there are no seams. Otherwise bit `c` is set exactly when organ `c` owns every disputed corner. Disputes with no common owner also give zero. |
+| `addressByte(i)` | Byte 0 through 21 of the agreeing body's address, lowest byte first. |
+| `tally(c, t)` | Number of cells with trit `t` in organ `c`'s report. |
+| `seal()`, `centre()` | The corner sum modulo three and centre health, respectively. Both return `0xFFFFFFFF` on disagreement. |
+| `heal(x, v)` | Corner `v` read from an owner other than the supplied index `x`. The full packet must be well formed. |
+| `owner(v, w)`, `vertex(c, j)` | For corner `v`, selector zero returns its first owner and any nonzero selector returns its second owner. Vertex lookup returns the global corner at local slot `j` of organ `c`. |
+
+## What was checked
+
+The three Lean files declare 68 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in
+`Twin.lean`). The stored axiom audit lists 50 of them and 17 list no axioms. It lists no axioms for the six geometry
+results, and none for ten of the eleven `Twin.lean` results (`majority_true` lists `propext`). Two audited results use `Classical.choice` (`seams_nil_iff` and `no_seam_one_body`).
+The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean sources contain no `sorry`.
+
+The checker loads only the Wasm and computes expected machine outputs in separate JavaScript. Its cube search
+closely follows the Python generator. Lean checks the supplied tables. `run-all.sh` invokes both the normal run
+and the control with a planted wrong verdict.
+
+The checker recorded 11,633 passing comparisons on its normal run and zero failures. It counted five rejected
+malformed cases separately. All 400 generated bodies agreed and matched their expected addresses. The faulty organ
+was a suspect in all 391 corner-fault cases and the sole suspect in 241. All 391 recovered the expected corners
+with the faulty index supplied. Of 400 private assignments, 256 changed a trit and all preserved the zero seam
+mask. Each of 400 selected triples saw identical reports for two different sums.
+
+The lab reports compiling the executable definitions to Wasm. The Lean audit checks the source and the JavaScript
+comparison exercises the shipped bytes. No live integration or outside rebuild is documented here.

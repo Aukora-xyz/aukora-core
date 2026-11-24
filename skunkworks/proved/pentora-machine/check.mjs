@@ -1,12 +1,11 @@
-// Does pentora.wasm (the proved Pentora machine, compiled) answer as an independent plain-code version does?
-// The plain code below rebuilds the five cubes from the dodecahedron in exact whole-number arithmetic (a + b·phi),
-// so the figure is computed three times by three programs: here, in gen.py, and in the Lean kernel.
+// The checker loads only the Wasm and computes expected machine outputs in separate JavaScript.
+// Its cube search closely follows the Python generator. Lean checks the supplied tables.
 // Usage: node check.mjs [control]        (control plants one wrong expectation; the run must then FAIL)
 import { readFileSync } from 'node:fs'; import { createHash } from 'node:crypto';
 const bytes = readFileSync(new URL('./pentora.wasm', import.meta.url)), mod = new WebAssembly.Module(bytes);
 if (WebAssembly.Module.imports(mod).length) throw new Error('the file imports something');
 const api = new WebAssembly.Instance(mod).exports, control = process.argv[2] === 'control';
-// --- the figure, independently ---
+// Find the cubes by exact distances, following gen.py.
 const add = (x, y) => [x[0] + y[0], x[1] + y[1]], sub = (x, y) => [x[0] - y[0], x[1] - y[1]];
 const mul = (x, y) => [x[0] * y[0] + x[1] * y[1], x[0] * y[1] + x[1] * y[0] + x[1] * y[1]], neg = x => [-x[0], -x[1]];
 const ONE = [1, 0], ZERO = [0, 0], PHI = [0, 1], INV = [-1, 1], V = [];
@@ -29,7 +28,7 @@ for (let v = 0; v < 20; v++) want(`corner ${v} is in two cubes`, owners(v).lengt
 for (let a = 0; a < 5; a++) for (let b = a + 1; b < 5; b++) want(`cubes ${a},${b} share two corners`, cubes[a].filter(v => cubes[b].includes(v)).length, 2);
 for (let c = 0; c < 5; c++) for (let j = 0; j < 8; j++) want(`vertex(${c},${j})`, api.vertex(c, j), cubes[c][j]);
 for (let v = 0; v < 20; v++) { want(`owner(${v},0)`, api.owner(v, 0), owners(v)[0]); want(`owner(${v},1)`, api.owner(v, 1), owners(v)[1]); }
-// --- the machine, independently ---
+// Compute expected machine outputs from the JavaScript reports and cube indices.
 let seed = 20261124; const rnd = n => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return (seed >>> 8) % n; };
 const body = bias => ({ priv: Array.from({ length: 5 }, () => Array.from({ length: 18 }, () => (rnd(100) < bias ? 2 : rnd(3)))), corn: Array.from({ length: 20 }, () => (rnd(100) < bias ? 2 : rnd(3))) });
 const views = g => cubes.map((c, ci) => [...g.priv[ci], ...c.map(v => g.corn[v])]);
@@ -68,7 +67,7 @@ for (let round = 0; round < 400; round++) {
     const three = [0, 1, 2, 3, 4].filter(c => c !== a && c !== b); hidden++;
     want('three organs see no difference', three.every(c => R2[c].join('') === R[c].join('')), true);
     send(R2); want('yet the seal differs', api.seal() >>> 0, (g.corn.reduce((s, t) => s + t, 0) + 1) % 3); }
-  // an organ changes only its private cells: nobody can see it
+  // Assign one private trit. In this fixed-seed sample 256 assignments change its value.
   const P = R.map(r => [...r]); P[x][rnd(18)] = rnd(3); send(P); privateLies++; want('a private change makes no seam', api.seams() >>> 0, 0);
 }
 want('different bodies, different addresses', addresses.size, distinct.size);
@@ -77,6 +76,6 @@ api.reset(); for (let i = 0; i < 131; i++) api.input(2); if ((api.judge() >>> 0)
 api.reset(); for (let i = 0; i < 130; i++) api.input(i === 77 ? 3 : 2); if ((api.judge() >>> 0) === 0xFFFFFFFF) malformed++; else bad++;
 api.reset(); for (let i = 0; i < 130; i++) api.input(2); want('all 110 cells passed: verdict 0', api.judge() >>> 0, 0); want('out-of-range address byte', api.addressByte(22) >>> 0, 0xFFFFFFFF);
 console.log(`pentora.wasm ${bytes.length} bytes, sha256 ${createHash('sha256').update(bytes).digest('hex')}, imports 0, exports ${WebAssembly.Module.exports(mod).map(e => e.name).sort().join(',')}`);
-console.log(`${agree} bodies agreed and addressed; ${liars} single liars, each among the suspects; ${convicted} convicted alone; ${privateLies} private changes unseen (the stated limit); ${heals} healed by the other four; ${hidden} seals hidden from three; malformed ${malformed} of 5 refused`);
+console.log(`${agree} bodies agreed and addressed. In ${liars} corner-fault cases the faulty organ was a suspect, in ${convicted} the sole suspect. Of ${privateLies} private assignments, 256 changed a trit and all preserved the zero seam mask. ${heals} corner-fault cases recovered the expected corners with the faulty index supplied. Each of ${hidden} selected triples saw identical reports for two different sums. Malformed inputs refused: ${malformed} of 5.`);
 if (notes.length) console.log(notes.join('\n'));
-console.log(`${ok} passed, ${bad} failed (Pentora machine, compiled from the proved text)`); process.exit(bad ? 1 : 0);
+console.log(`${ok} passed, ${bad} failed (Pentora Wasm check, malformed cases counted separately on success)`); process.exit(bad ? 1 : 0);

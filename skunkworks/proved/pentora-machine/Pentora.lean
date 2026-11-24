@@ -1,8 +1,8 @@
 /-! # The Pentora machine
 
-Five cubes in a dodecahedron, each cube 27 cells, each cell one of three values. Part 1 builds the figure in exact
-arithmetic and checks its shape in the kernel. Part 2 is a machine on it: five organs each report their own cube, and
-the shared corners are where two organs must agree. Core Lean 4.19.0, no library beyond the prelude. -/
+Part 1 checks the listed vertices, five cube distance signatures and sampled cell counts in exact arithmetic.
+Among the sampled outer cells, only corners are shared. All five cubes also share the origin. In Part 2 each
+organ reports its own outer cells, and the two owners of each corner must agree. Core Lean 4.19.0. -/
 namespace Pentora
 
 /-! ## Part 1. The figure, exactly (numbers a + b·φ with whole a, b, where φ² = φ + 1; no decimals anywhere) -/
@@ -57,7 +57,8 @@ def cube (c : Nat) : List Nat := cubeTable.getD c []
 def dist2 (p q : Pt) : Zphi := ((p.1.sub q.1).sq.add (p.2.1.sub q.2.1).sq).add (p.2.2.sub q.2.2).sq
 def norm2 (p : Pt) : Zphi := (p.1.sq.add p.2.1.sq).add p.2.2.sq
 
-/-- Eight points are a cube of edge 2 when each sees three others at squared distance 4, three at 8 and one at 12. -/
+/-- Check the cube distance signature on a list of eight vertices. Each sees three others at squared distance 4,
+    three at 8 and one at 12. -/
 def cubeOk (c : List Nat) : Bool :=
   c.length == 8 && c.all fun v =>
     let ds := (c.filter (· != v)).map fun w => dist2 (vtx v) (vtx w)
@@ -67,14 +68,14 @@ theorem twenty_vertices :
     vertices.length = 20 ∧ vertices.eraseDups.length = 20 ∧ (vertices.all fun p => norm2 p == ⟨3, 0⟩) = true := by
   decide +kernel
 
-/-- FIVE CUBES. Each of the five listed sets of vertices is a cube. -/
+/-- All five listed vertex sets satisfy the cube distance check. -/
 theorem five_cubes : cubeTable.length = 5 ∧ cubeTable.all cubeOk = true := by decide +kernel
 
-/-- EVERY CORNER IS SHARED BY EXACTLY TWO CUBES. -/
+/-- Each of the 20 listed corners occurs in exactly two cubes. -/
 theorem each_corner_in_two :
     ((List.range 20).all fun v => (cubeTable.filter (·.contains v)).length == 2) = true := by decide +kernel
 
-/-- EVERY TWO CUBES SHARE EXACTLY TWO CORNERS. -/
+/-- Every pair of distinct listed cubes shares exactly two corners. -/
 theorem each_pair_shares_two :
     ((List.range 5).all fun a => (List.range 5).all fun b =>
       a == b || ((cube a).filter (cube b).contains).length == 2) = true := by decide +kernel
@@ -91,14 +92,15 @@ def privateCells (c : List Nat) : List Pt := edgeCells c ++ faceCells c
 def allPrivate : List Pt := cubeTable.flatMap privateCells
 def allCorners : List Pt := vertices.map corner4
 
-/-- EACH CUBE HAS 27 CELLS: 12 edge middles, 6 face centres, 8 corners, and one centre, the same for all five. -/
+/-- For each listed cube, 12 edge midpoints, six face centres and the common origin complete the 27 samples
+    together with its eight corners. -/
 theorem cube_has_27 :
     (cubeTable.all fun c => (edgeCells c).length == 12 && (faceCells c).length == 6 &&
       ((pairsAt c ⟨12, 0⟩).eraseDups == [origin])) = true := by decide +kernel
 
-/-- THE FIGURE HAS 110 OUTER CELLS, AND ONLY THE CORNERS ARE SHARED. The 90 edge and face cells of the five cubes are
-    all different points, and different from the 20 corners. Three shells: 30 at squared radius 1, 60 at 2, 20 at 3
-    (16, 32 and 48 at this scale). -/
+/-- Among the 110 sampled outer cells, only corners are shared. The 90 edge and face cells are all distinct and
+    disjoint from the 20 listed corners. The shells contain 30, 60 and 20 points at squared radii 16, 32 and 48
+    in the scaled coordinates. All five cubes also share the origin. -/
 theorem figure_110 :
     allPrivate.length = 90 ∧ (allPrivate ++ allCorners).eraseDups.length = 110 ∧
     (allCorners.all fun p => norm2 p == ⟨48, 0⟩) = true ∧
@@ -144,7 +146,8 @@ theorem two_witnesses : ∀ a b : Fin 5, a ≠ b →
     ((fins 20).filter fun v => ((home1 v).1 = a ∧ (home2 v).1 = b) ∨ ((home1 v).1 = b ∧ (home2 v).1 = a)).length = 2 := by
   decide +kernel
 
-/-- What one organ reports: its 18 private cells and its 8 corners. -/
+/-- One organ reports 18 numbered private slots and eight corners. The model leaves individual private slots
+    unassigned to geometric coordinates. -/
 structure Report where
   priv : Fin 18 → Trit
   corn : Fin 8 → Trit
@@ -201,7 +204,7 @@ theorem glue_unique (R : Fin 5 → Report) (g : Body) (h : ∀ c, view g c = R c
     show g.corn v = g.corn (slot (home1 v).1 (home1 v).2)
     rw [(homes v).1]
 
-/-- THE WHOLE STATEMENT: reports agree exactly when one body stands behind them, and then it is `glue`. -/
+/-- Agreement is equivalent to the existence of a body with these five views. `glue_unique` supplies uniqueness. -/
 theorem gluing (R : Fin 5 → Report) : Compatible R ↔ ∃ g, ∀ c, view g c = R c := by
   constructor
   · intro h; exact ⟨glue R, view_glue R h⟩
@@ -211,8 +214,7 @@ theorem gluing (R : Fin 5 → Report) : Compatible R ↔ ∃ g, ∀ c, view g c 
 
 /-! ### Faults: who can be caught, by whom, and what cannot be seen -/
 
-/-- A LIE ABOUT A CORNER IS CAUGHT BY ITS OTHER OWNER. If the first owner misreports a corner and the second owner
-    reports the body truly, the two disagree there. -/
+/-- A false corner from the first owner disagrees with the second owner's truthful report. -/
 theorem corner_lie_caught (g : Body) (R : Fin 5 → Report) (v : Fin 20)
     (lie : at1 R v ≠ g.corn v) (honest : R (home2 v).1 = view g (home2 v).1) : at1 R v ≠ at2 R v := by
   have e : at2 R v = g.corn v := by
@@ -220,6 +222,7 @@ theorem corner_lie_caught (g : Body) (R : Fin 5 → Report) (v : Fin 20)
     rw [honest]; exact at2_view g v
   rw [e]; exact lie
 
+/-- The same disagreement occurs when the second owner misreports and the first reports truthfully. -/
 theorem corner_lie_caught' (g : Body) (R : Fin 5 → Report) (v : Fin 20)
     (lie : at2 R v ≠ g.corn v) (honest : R (home1 v).1 = view g (home1 v).1) : at1 R v ≠ at2 R v := by
   have e : at1 R v = g.corn v := by
@@ -227,8 +230,8 @@ theorem corner_lie_caught' (g : Body) (R : Fin 5 → Report) (v : Fin 20)
     rw [honest]; exact at1_view g v
   rw [e]; exact fun k => lie k.symm
 
-/-- EVERY DISAGREEMENT NAMES THE LIAR. If every organ but x reports the body truly, then every corner where two
-    reports disagree is one of x's corners. -/
+/-- With four truthful reports the faulty organ owns every disagreement. When one corner is disputed, both
+    owners are suspects. -/
 theorem seam_names_liar (g : Body) (R : Fin 5 → Report) (x : Fin 5)
     (honest : ∀ c, c ≠ x → R c = view g c) (v : Fin 20) (seam : at1 R v ≠ at2 R v) :
     (home1 v).1 = x ∨ (home2 v).1 = x := by
@@ -245,8 +248,8 @@ theorem seam_names_liar (g : Body) (R : Fin 5 → Report) (x : Fin 5)
         rw [honest _ h2]; exact at2_view g v
       rw [e1, e2]
 
-/-- THE HONEST LIMIT. Agreement reads only the corners: whatever an organ says about its 18 private cells, the
-    reports agree or disagree exactly as before. Private cells are an organ's own word. -/
+/-- Agreement depends only on the corners. Changing a private cell in otherwise agreeing reports leaves no
+    disagreements and therefore no suspects. -/
 theorem private_cells_unwitnessed (R R' : Fin 5 → Report) (same : ∀ c, (R c).corn = (R' c).corn) :
     Compatible R ↔ Compatible R' := by
   have e1 : ∀ v, at1 R v = at1 R' v := fun v => congrFun (same _) _
@@ -281,8 +284,7 @@ theorem seams_nil_iff (R : Fin 5 → Report) : seams R = [] ↔ Compatible R := 
     apply List.eq_nil_iff_forall_not_mem.2
     intro v m; exact (mem_seams.1 m) (h v)
 
-/-- ONE LIAR IS ALWAYS AMONG THE SUSPECTS. If every organ but x reports the body truly and some corner disagrees,
-    then x is a suspect. -/
+/-- If every organ but x reports truthfully and at least one corner disagrees, x is a suspect. -/
 theorem liar_among_suspects (g : Body) (R : Fin 5 → Report) (x : Fin 5)
     (honest : ∀ c, c ≠ x → R c = view g c) (some : seams R ≠ []) : x ∈ suspects R := by
   have ne : (seams R).isEmpty = false := by
@@ -305,18 +307,20 @@ theorem suspect_owns (R : Fin 5 → Report) (c : Fin 5) (v : Fin 20) (s : c ∈ 
     simp only [Bool.false_eq_true, if_false, List.mem_filter, List.all_eq_true] at s
     exact s.2 v m
 
-/-- CONVICTION. Two disagreeing corners whose only common owner is x leave x as the only suspect. -/
+/-- Every suspect equals x under the common-owner premise. This conclusion holds for an empty suspect list,
+    and the premise holds vacuously for disjoint owner pairs. With four truthful organs and disagreements involving
+    two different neighbours, `liar_among_suspects` and `convicted` together identify the faulty organ. -/
 theorem convicted (R : Fin 5 → Report) (x : Fin 5) (v w : Fin 20) (mv : v ∈ seams R) (mw : w ∈ seams R)
     (only : ∀ c, owns c v = true → owns c w = true → c = x) : ∀ c, c ∈ suspects R → c = x :=
   fun c s => only c (suspect_owns R c v s mv) (suspect_owns R c w s mw)
 
-/-! ### Each organ's health is a point in a triangle (three counts with a fixed total) -/
+/-! ### The three tallies form a point in a triangle and sum to 26 for each report -/
 
 def tally (t : Trit) : List Trit → Nat
   | [] => 0
   | x :: xs => (if x = t then 1 else 0) + tally t xs
 
-/-- THE TRIANGLE LAW. Passed, unknown and failed always add up to the number of cells: nothing is lost or made. -/
+/-- The passed, unknown and failed tallies sum to the length of the list. -/
 theorem triangle (l : List Trit) : tally .pass l + tally .unknown l + tally .fail l = l.length := by
   induction l with
   | nil => rfl
@@ -409,7 +413,7 @@ def address (g : Body) : Nat := rank (cells g)
 
 theorem cells_length (g : Body) : (cells g).length = 110 := by simp [cells, length_fins]
 
-/-- 110 cells fit in 22 bytes and do not fit in 21. -/
+/-- These bounds put the 110-trit address space in 22 bytes and rule out 21 bytes. -/
 theorem fits_22_bytes : 3 ^ 110 < 2 ^ 176 ∧ 2 ^ 168 < 3 ^ 110 := by decide
 
 theorem address_lt (g : Body) : address g < 2 ^ 176 := by
@@ -417,7 +421,8 @@ theorem address_lt (g : Body) : address g < 2 ^ 176 := by
   rw [cells_length] at h
   exact Nat.lt_trans h fits_22_bytes.1
 
-/-- THE ADDRESS IS THE STATE. Two bodies with the same 22-byte address are the same body, cell for cell. -/
+/-- The address encodes all 110 trits injectively. The largest address, 3^110 - 1, needs 175 bits. Each organ
+    can compare its own 26 trits with its view of a supplied body. -/
 theorem address_injective {g g' : Body} (h : address g = address g') : g = g' := by
   have hc : cells g = cells g' := by
     have a := unrank_rank (cells g); have b := unrank_rank (cells g')
@@ -446,13 +451,13 @@ theorem address_injective {g g' : Body} (h : address g = address g') : g = g' :=
     rw [ev] at e
     exact e
 
-/-- The body of five agreeing reports, as its address. -/
+/-- Address of the glued body. With agreeing reports each of its views matches the corresponding report. -/
 def addressOf (R : Fin 5 → Report) : Nat := address (glue R)
 
 /-! ## Part 3. Three levels of knowing: one owner, two owners, all five
 
-A private cell is seen by one organ. A corner is seen by exactly two. The centre belongs to all five cubes. This part
-proves what follows from "exactly two": any four organs hold every corner, any three are blind to two of them. -/
+A private cell is seen by one organ. Two distinct owners per corner give four-organ coverage. Exactly two corners
+per pair explain why any three miss two. These laws are stated for this layout. -/
 
 theorem code_ofCode (n : Nat) : (Trit.ofCode n).code = n % 3 := by
   unfold Trit.ofCode
@@ -481,7 +486,7 @@ theorem cell_corn (g : Body) (v : Fin 20) : cell g ⟨90 + v.val, by have := v.i
   have ev : (⟨90 + v.val - 90, by omega⟩ : Fin 20) = v := Fin.ext (by show 90 + v.val - 90 = v.val; omega)
   rw [ev]
 
-/-- Every cell an organ sees is a cell of the body. -/
+/-- Every trit value occurring in a local view occurs in the body's list of trits. -/
 theorem view_cell_in_body (g : Body) (c : Fin 5) (t : Trit) (m : t ∈ cellsOf (view g c)) : t ∈ cells g := by
   unfold cellsOf at m
   rcases List.mem_append.1 m with m | m
@@ -490,7 +495,8 @@ theorem view_cell_in_body (g : Body) (c : Fin 5) (t : Trit) (m : t ∈ cellsOf (
   · obtain ⟨j, _, rfl⟩ := List.mem_map.1 m
     exact List.mem_map.2 ⟨_, mem_fins _, cell_corn g (slot c j)⟩
 
-/-- The centre: the one cell of all five cubes. It has no digit in the address; it is read off the other 110. -/
+/-- Centre health is computed over the body's 110 cells. It is 0 when all passed, 1 for unknown with no failure,
+    and 2 for any failure. -/
 def centre (g : Body) : Nat := health (cells g)
 
 /-- THE CENTRE IS CLEAR exactly when every one of the 110 cells passed. -/
@@ -501,25 +507,24 @@ theorem centre_zero_iff (g : Body) : centre g = 0 ↔ ∀ i, cell g i = .pass :=
   · intro h i; exact h _ (List.mem_map.2 ⟨i, mem_fins i, rfl⟩)
   · intro h x m; obtain ⟨i, _, rfl⟩ := List.mem_map.1 m; exact h i
 
-/-- A FAILURE ANYWHERE REACHES THE CENTRE. If one organ sees a failed cell in its own cube, the centre says failed. -/
+/-- If an organ's view of the body contains a failed trit, the body's centre health is 2. -/
 theorem local_fail_reaches_centre (g : Body) (c : Fin 5) (h : health (cellsOf (view g c)) = 2) : centre g = 2 :=
   (health_two_iff _).2 (view_cell_in_body g c _ ((health_two_iff _).1 h))
 
-/-- NOTHING CAN SET THE CENTRE. It is fixed by the address of the 110 cells. -/
+/-- Equal addresses give equal centre health by address injectivity. -/
 theorem centre_of_address {g g' : Body} (h : address g = address g') : centre g = centre g' := by
   rw [address_injective h]
 
-/-- A corner that organs x and y own together (the lower of their two). -/
+/-- For distinct x and y, select the lower of the two corners they own together. -/
 def blindOf (x y : Fin 5) : Fin 20 :=
   ((fins 20).filter fun v => ((home1 v).1 = x ∧ (home2 v).1 = y) ∨ ((home1 v).1 = y ∧ (home2 v).1 = x)).headD 0
 
-/-- For every two organs there is a corner that those two own and nobody else does. -/
+/-- For two distinct omitted organs, the selected corner is owned by that pair. -/
 theorem blind_corner : ∀ x y : Fin 5, x ≠ y →
     ((home1 (blindOf x y)).1 = x ∧ (home2 (blindOf x y)).1 = y) ∨
     ((home1 (blindOf x y)).1 = y ∧ (home2 (blindOf x y)).1 = x) := by decide +kernel
 
-/-- ANY FOUR ORGANS HOLD EVERY CORNER. Two bodies that look the same to four organs have the same 20 corners:
-    the fifth organ's whole shared face is known to the others. -/
+/-- Equal views at four organs determine the same 20 global corners, including the fifth organ's eight. -/
 theorem four_see_all (g g' : Body) (x : Fin 5) (h : ∀ c, c ≠ x → view g c = view g' c) : g.corn = g'.corn := by
   funext v
   have hv := homes v
@@ -532,12 +537,13 @@ theorem four_see_all (g g' : Body) (x : Fin 5) (h : ∀ c, c ≠ x → view g c 
     change g.corn (slot (home1 v).1 (home1 v).2) = g'.corn (slot (home1 v).1 (home1 v).2) at e
     rw [hv.1] at e; exact e
 
-/-- The corners with organ x overruled: each corner is taken from its owner that is not x. -/
+/-- Given the excluded organ's index x, read each corner from an owner other than x. -/
 def heal (R : Fin 5 → Report) (x : Fin 5) : Fin 20 → Trit :=
   fun v => if (home1 v).1 = x then at2 R v else at1 R v
 
-/-- SELF-HEALING. If every organ but x reports the body truly, the other four give back all 20 true corners,
-    whatever x says or even if x says nothing. -/
+/-- Given x and reports for all five organs, `heal` reads all 20 global corners from the other four. With
+    those four truthful, these include the eight true corners of x. Its 18 private cells remain unknown.
+    The Wasm call requires a valid fifth report as filler and writes nothing. -/
 theorem heal_true (g : Body) (R : Fin 5 → Report) (x : Fin 5) (honest : ∀ c, c ≠ x → R c = view g c) :
     heal R x = g.corn := by
   funext v
@@ -577,7 +583,7 @@ theorem sumC_upd (f : Fin 20 → Trit) (v : Fin 20) (t : Trit) :
 
 theorem cnt_fins : ∀ v : Fin 20, cnt v (fins 20) = 1 := by decide +kernel
 
-/-- The seal of a body: the sum of its 20 corners, counted in threes. -/
+/-- The seal trit is the sum of the 20 corner codes modulo three. Do not use this trit as a key or put secrets in it. -/
 def sealOf (g : Body) : Nat := sumC g.corn (fins 20) % 3
 
 theorem seal_upd (g : Body) (v : Fin 20) (t : Trit) :
@@ -586,12 +592,12 @@ theorem seal_upd (g : Body) (v : Fin 20) (t : Trit) :
   rw [cnt_fins v, Nat.one_mul, Nat.one_mul] at h
   exact h
 
-/-- FOUR ORGANS KNOW THE SEAL. Two bodies that look the same to any four organs have the same seal. -/
+/-- Four truthful local views determine the sum modulo three. -/
 theorem seal_known_to_four (g g' : Body) (x : Fin 5) (h : ∀ c, c ≠ x → view g c = view g' c) : sealOf g = sealOf g' := by
   unfold sealOf; rw [four_see_all g g' x h]
 
-/-- THREE ORGANS KNOW NOTHING OF THE SEAL. Leave out any two organs. Whatever the other three see, there is a body
-    that looks exactly the same to those three and whose seal is any value you name. Their view rules nothing out. -/
+/-- Every realizable three-organ view permits each of the three sums. For any target, setting one unseen corner
+    produces a body with that sum and the same three views. This is possibilistic hiding. -/
 theorem seal_hidden_from_three (g : Body) (x y : Fin 5) (hxy : x ≠ y) (target : Nat) (ht : target < 3) :
     ∃ g' : Body, (∀ c, c ≠ x → c ≠ y → view g' c = view g c) ∧ sealOf g' = target := by
   have hv := blind_corner x y hxy
