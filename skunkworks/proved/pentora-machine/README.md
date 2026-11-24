@@ -146,7 +146,7 @@ followed by eight corners in slot order. Input codes are 0 for failed, 1 for unk
 ## What was checked
 
 The four Lean files declare 77 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in
-`Twin.lean`, 9 in `Sharper.lean`). The stored axiom audit lists 56 of them and 18 list no axioms. It lists no axioms
+`Twin.lean`, 9 in `Sharper.lean`). A fifth file, `Rule.lean`, adds 9 more (86 in all); it is checked by the separate, optional `check-rule.sh`, and its audit is in `check-rule.txt`, not in the figures below. The stored axiom audit lists 56 of them and 18 list no axioms. It lists no axioms
 for the six geometry results, none for ten of the eleven `Twin.lean` results (`majority_true` lists `propext`), and
 none for `address_bits`. Two audited results use `Classical.choice` (`seams_nil_iff` and `no_seam_one_body`).
 The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean sources contain no `sorry`.
@@ -204,3 +204,32 @@ decoder for wrong reports. (5) This computation examines only the sample directi
 for novelty.
 
 To re-run it: `python3 skunkworks/proved/pentora-machine/parts.py` (about 45 seconds, Python 3 standard library only) and compare with `parts.txt`. It is not part of `run-all.sh`.
+
+## A rule on six whole numbers (`Rule.lean`)
+
+Twice each outer cell's position has three coordinates of the form a + b·φ, giving six signed whole numbers. `rule` is a test on those six numbers that
+reads no list of vertices or cubes: the squared length is 4 or 8 and the point is in a lattice (the second number is
+φ times the first and the third φ times the second, each time with both coefficients of the difference even); or the squared length is 12, all six
+numbers are even, and half the point less (1, 1, 1) is in that lattice.
+
+- `rule_iff_cell` (uses `propext` and `Quot.sound`): for EVERY point with whole-number parts, of any size, the point
+  passes the rule exactly when it is in `cells2`, the list of the 110 outer cells of `Pentora.lean` at twice their position.
+- `cells_pass_the_rule` (no axioms): halving the stored cells loses nothing, the 110 are different points, and each
+  passes the rule.
+- `box_check` (no axioms): the finite check. Among all points whose six squares add to at most 12, each one that
+  passes the rule is one of the 110 written out in `cellsLit`; `cells_lit` (no axioms) says that list is `cells2`.
+- `small_of_sq`, `rule_norm`, `norm2_a`, `sq_nonneg'`, `all7p_spec`: the bound that makes the finite check complete
+  (a point that passes has squares adding to at most 12, so each number is between -3 and 3), and helpers. The
+  definitions are `inL` (the lattice test), `allEven`, `halfLessOne`, `halfPt` (halves a stored cell) and `all7p` (the
+  search over seven values per number).
+
+`rule.py` repeats the comparison by plain enumeration of all 117,649 points with numbers from -3 to 3: 110 pass, 30,
+60 and 20 on the three shells, the same set as the figure built the long way (`rule.txt`).
+
+What this does not say. It is a second, table-free definition of the same 110 points; a stored table answers
+membership too. The proof is a bound plus a finite check; it gives no geometric derivation of the rule. "Six whole numbers" is how these coordinates
+are written; no statement about a six-dimensional lattice or projection is made. Checking this file took about 45
+seconds and up to 3 GB of memory in the Lean kernel on the laptop it was measured on (the stored audit does not record
+those figures), heavier than the other checks, so it is checked separately by the optional `check-rule.sh` (its audit is `check-rule.txt`) and is not part of `run-all.sh`. The
+rule itself was suggested by an outside review; the Lean statement, its proof and the enumeration were written here.
+We make no claim of novelty. To re-run the enumeration: `python3 skunkworks/proved/pentora-machine/rule.py`.
