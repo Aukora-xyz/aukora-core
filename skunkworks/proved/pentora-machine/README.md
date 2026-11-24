@@ -16,7 +16,7 @@ Run these commands from the repository root.
 
     TOOLCHAIN=toolchain sh skunkworks/proved/pentora-machine/build-wasm.sh    # rebuilds pentora.wasm and prints MATCH only if byte-identical (Apple-silicon macOS, fetched toolchain)
 
-With the toolchain fetched as the root README describes, `LEAN=toolchain/lean-4.19.0-darwin_aarch64/bin/lean` works for the Lean scripts (one outside run, for `check.sh` and `check-rule.sh`).
+With the toolchain fetched as the root README describes, use the ABSOLUTE path: `LEAN="$PWD/toolchain/lean-4.19.0-darwin_aarch64/bin/lean"` (the Lean scripts change into this folder first, so a relative path fails), for `check.sh`, `check-rule.sh` and `check-arkpairs.sh` (outside runs). `build-wasm.sh` resolves its toolchain from the repository root, so `TOOLCHAIN=toolchain` as shown above works.
 
 ## The sampled geometry
 
