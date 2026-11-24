@@ -10,9 +10,11 @@ Run these commands from the repository root.
     node skunkworks/proved/pentora-machine/check.mjs
     node skunkworks/proved/pentora-machine/check.mjs control    # a planted wrong expectation must fail
         LEAN=/path/to/lean-4.19.0/bin/lean sh skunkworks/proved/pentora-machine/check.sh
-    LEAN=/path/to/lean-4.19.0/bin/lean sh skunkworks/proved/pentora-machine/check-rule.sh    # optional, heavier: see "A rule on six whole numbers"
+        LEAN=/path/to/lean-4.19.0/bin/lean sh skunkworks/proved/pentora-machine/check-rule.sh    # optional, heavier: see "A rule on six whole numbers"
+    LEAN=/path/to/lean-4.19.0/bin/lean sh skunkworks/proved/pentora-machine/check-arkpairs.sh    # optional, light: see "The ten ARK pieces on the ten pairs"
 
-With the toolchain fetched as the root README describes, `LEAN=toolchain/lean-4.19.0-darwin_aarch64/bin/lean` works for both Lean scripts (one outside run).
+
+With the toolchain fetched as the root README describes, `LEAN=toolchain/lean-4.19.0-darwin_aarch64/bin/lean` works for the Lean scripts (one outside run, for `check.sh` and `check-rule.sh`).
 
 ## The sampled geometry
 
@@ -149,8 +151,7 @@ followed by eight corners in slot order. Input codes are 0 for failed, 1 for unk
 
 ## What was checked
 
-The seven Lean files that `check.sh` checks declare 97 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in `Twin.lean`, 9 in `Sharper.lean`, 12 in `Stamp.lean`, 2 in `StampBytes.lean`, 6 in `Degraded.lean`). An eighth file, `Rule.lean`, adds 9 more (106 in all); it is checked by the separate,
-optional `check-rule.sh`, and its audit is in `check-rule.txt`, not in the figures below. The stored axiom audit (`check.txt`) lists 76 of the 97
+The seven Lean files that `check.sh` checks declare 97 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in `Twin.lean`, 9 in `Sharper.lean`, 12 in `Stamp.lean`, 2 in `StampBytes.lean`, 6 in `Degraded.lean`). Two more files, `Rule.lean` (9) and `ArkPairs.lean` (6), make 112 in all; each is checked by its own optional script (`check-rule.sh`, `check-arkpairs.sh`), and their audits are in `check-rule.txt` and `check-arkpairs.txt`, not in the figures below. The stored axiom audit (`check.txt`) lists 76 of the 97
 and 18 list no axioms. It lists no axioms for the six geometry results, none for ten of the eleven `Twin.lean` results (`majority_true` lists
 `propext`), and none for `address_bits`. Twelve audited results use `Classical.choice`: `seams_nil_iff`, `no_seam_one_body`, seven in `Stamp.lean` (`go_iff`, `one_part_cannot_force_go`, `honest_go`, `any_part_can_stop`, `two_owners_can_force`, `private_fault_can_be_hidden`, `judge_zero_means_go`) `judge_zero_iff` in `StampBytes.lean`, and `go_gives_go4` and `offline_neighbour_can_force` in `Degraded.lean`. The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean files checked by `check.sh` and `check-rule.sh` contain no `sorry` (the check output shows none).
 
@@ -278,3 +279,22 @@ Choose which of the five organs is offline. The four-report rule ignores that or
 **What this does not say.** Acceptance tells you nothing about the offline organ’s 18 private cells. If an online organ conceals a fault at a corner it shares with the offline organ, the other three have no report of that corner to compare.
 
 `degraded.mjs` computes the four-report rule in JavaScript, because the shipped Wasm has no call for it. It checks that JavaScript copy on generated reports (2,000 visible bad corners and 2,000 hidden shared corners) and, in 2,000 further trials, that the shipped five-report `judge` returns nonzero for a packet with one nonpassing entry and zero after it is repaired, and that the JavaScript rule then accepts the repaired all-pass packet for each of the five offline choices; a planted wrong expectation makes it fail. It does not run the Lean function. To re-run it: `node skunkworks/proved/pentora-machine/degraded.mjs` (a second; `run-all.sh` runs it and its control).
+
+## The ten ARK pieces on the ten pairs (`ArkPairs.lean`)
+
+ARK, defined in `core/Ark.lean`, uses four source parts over GF(256), with four identity rows and six Cauchy rows, labelled 0 to 9. Its theorem `every_four_rows` states that every selection of four distinct row labels has a two-sided inverse. Each of the five organs forms a pair with each of the other four. This file assigns one ARK row label to each pair. The label identifies the encoded piece its two organs would both hold.
+
+- `pairRow_symm` says that swapping the two organs leaves their row label unchanged.
+- `pairRow_bijection` says that pairs of distinct organs get labels from 0 through 9, every label is used, and two such pairs get the same label exactly when they consist of the same two organs in either order.
+- `organRows_four` says that every organ has four different row labels.
+- `organRows_common` says that any two distinct organs have exactly one label in common, the label for their own pair.
+- `coverage_counts` says that any one organ covers four labels, any two distinct organs cover seven, any three distinct organs cover nine, and any four distinct organs cover all ten.
+- `one_organ_rebuilds` says that each organ’s four rows have a two-sided inverse. For four pieces correctly encoded from the same source with those row labels, applying the inverse recovers all four source parts.
+
+**What this does not say.** If both organs of each pair store its quarter-size piece, the 20 stored pieces occupy five times the source payload in total, one full payload per organ, so there is no storage saving. What the arrangement adds is that each label is assigned to exactly two organs; if both store that piece, they could compare their copies. Nothing here stores, moves, or checks real pieces.
+
+How it is checked. `check-arkpairs.sh` takes the definitions of `core/Ark.lean` (its text up to, not including,
+`def checkedMask`) straight from that file each time it runs, and checks `ArkPairs.lean` against them (12 to 13 seconds in the two reported runs). `one_organ_rebuilds` is proved by checking the five organs' own row sets with ARK's stored candidate
+inverses; it does not use ARK's general theorem `every_four_rows`. Checking `core/Ark.lean` in full was tried on the laptop this was written on and stopped by a 4 GB memory limit (an author-reported observation). This script does not check `every_four_rows`.
+
+Checking `ArkPairs.lean` took 13 seconds and 0.79 GB on one laptop (a second run by the file's author: 12 seconds and 0.61 GB); `check-arkpairs.sh` is not part of `run-all.sh`.
