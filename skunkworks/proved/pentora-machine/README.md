@@ -295,6 +295,6 @@ ARK, defined in `core/Ark.lean`, uses four source parts over GF(256), with four 
 
 How it is checked. `check-arkpairs.sh` takes the definitions of `core/Ark.lean` (its text up to, not including,
 `def checkedMask`) straight from that file each time it runs, and checks `ArkPairs.lean` against them (12 to 13 seconds in the two reported runs). `one_organ_rebuilds` is proved by checking the five organs' own row sets with ARK's stored candidate
-inverses; it does not use ARK's general theorem `every_four_rows`. Checking `core/Ark.lean` in full was tried on the laptop this was written on and stopped by a 4 GB memory limit (an author-reported observation). This script does not check `every_four_rows`.
+inverses; it does not use ARK's general theorem `every_four_rows`. Checking `core/Ark.lean` in full was tried on the laptop this was written on and stopped by a 4 GB memory limit (an author-reported observation). The script refuses to run if the text it takes from `core/Ark.lean` differs from the text `ArkPairs.lean` was checked against (a pinned SHA-256 of that text). This script does not check `every_four_rows`.
 
 Checking `ArkPairs.lean` took 13 seconds and 0.79 GB on one laptop (a second run by the file's author: 12 seconds and 0.61 GB); `check-arkpairs.sh` is not part of `run-all.sh`.
