@@ -26,7 +26,7 @@ This checks the record you were given. It does not show that any outside action 
 
 A **frame** is one encoded entry. The **head** is the resulting record fingerprint, and the **law identity** identifies the rule set the core reports. A head by itself does not authenticate the keys the record starts with. The reader checks the small Wasm file against a pinned digest; for the shipped sample, the command above checks the published expected head (also in [RELEASE.json](RELEASE.json)) and exits non-zero on a mismatch. For your own records, obtain the expected head independently of the record you are handed; the sample head here is a demo fixture, not independent attestation of a live record.
 
-**A witness, not a lock.** A valid replay is not proof the host logged everything, told the truth, or carried out an external action. Core does not govern a live system. The sample uses lab keys and includes no private signing material.
+**A witness, not a lock.** A valid replay is not proof the host logged everything, told the truth, or carried out an external action. This repository does not demonstrate Core governing a live system. The sample uses lab keys and includes no private signing material.
 
 ## What is proved / what is not
 
@@ -60,7 +60,7 @@ The first runs the v0.8 adapter's checks. The second runs selected release and l
 
 ## Rebuild
 
-The documented source rebuild targets **Apple-silicon macOS**, not Linux. Two documented v0.8 builds on the same Mac matched. On 24 November 2026 a second builder rebuilt v0.8 from an empty folder of the public export at commit 905ec2f, using the commands below, on one Apple-silicon Mac (toolchain fetch about 77 seconds, build about 15 minutes); both files were byte-identical to the pinned digests. It has not been repeated on other hardware or by an outside party. The platform's CI smoke checks are a separate result.
+The documented source rebuild targets **Apple-silicon macOS**, not Linux. Two documented v0.8 builds on the same Mac matched. On 24 November 2026 a second project builder rebuilt v0.8 from an empty folder of the public export at commit 905ec2f, using the commands below, on one Apple-silicon Mac (toolchain fetch about 77 seconds, build about 15 minutes); both files were byte-identical to the pinned digests. It has not been repeated on other hardware or by an outside party. The platform's CI smoke checks are a separate result.
 
 You'll need Node 24, Python 3, the Xcode command-line tools, and the pinned Lean and WASI SDK toolchains. The optional fetch uses `curl`, `unzip` and `tar`, downloads about 540 MB and needs about 2.5 GB free. It checks each archive against a SHA-256 consistency pin before unpacking, then every kept file against the per-file pins. Use a separate empty directory for the toolchain and an unused build destination.
 
@@ -70,4 +70,4 @@ python3 release-tools/build-tree.py v0.8 ../core-build --toolchain toolchain
 sh ../core-build/v0.8/build.sh
 ```
 
-Expect `PASS v0.8` at the end. Keep the result and file digests with the exact revision and platform. Source and third-party terms are documented in [LICENSE](LICENSE) and [NOTICE](NOTICE).
+On the documented configuration, expect `PASS v0.8` at the end. Keep the result and file digests with the exact revision and platform. Source and third-party terms are documented in [LICENSE](LICENSE) and [NOTICE](NOTICE).

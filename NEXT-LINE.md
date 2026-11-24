@@ -19,16 +19,14 @@ starts with those two forms on its refused list, and one place in the machine (`
   old forms are refused, signed for that very record or re-addressed from a twin (56 checks,
   `v0.10/tests/independent/readdress.mjs <core> closed`); the timed approval still works; a record started the old
   way behaves exactly as under v0.9 (3,913 steps compared, `twin-cores.mjs`).
-- v0.10 was rebuilt from scratch a second time, by a second builder, from an isolated staged folder on the same Apple-silicon
-  Mac; both files came out byte-identical to the pinned digests (23 Nov 2026, the second builder's report). NOT DONE: a rebuild on
-  other hardware or by someone outside the project.
+- v0.10 was rebuilt from scratch a second time, by a second project builder, from an isolated staged folder on the same Apple-silicon
+  Mac; both files came out byte-identical to the pinned digests (23 Nov 2026, the second builder's report). NOT DONE (none documented by this project): a rebuild on other hardware or by someone outside the project.
 - PROVED ON EFFECTS (hardening round 1, `hardening/BoundEffects.lean`): in a record started bound, a new grant can
   come only from a timed approval, and the owner's keys can change only by a key change addressed to that record.
   For those two effects there is no other route, in the Lean model.
 - NOT PROVED: no other effect is covered by that statement, and two records started with the same descriptor (a
   fork) are not ruled out. No frame can yet CHANGE the list; a record's list is fixed at its start.
-- UNCHANGED: a record's chain still ends in a trap: measured on the v0.10 small core with lines of 3,000 bytes, after
-  34,988 lines (102.1 MiB), within one line of v0.8 (one run each, `docs/long-chain-v0.10-lite-3000.txt`).
+- UNCHANGED: in the recorded 3,000-byte-line run, the v0.10 small core trapped after 34,988 lines (102.1 MiB), within one line of v0.8 (one run each, `docs/long-chain-v0.10-lite-3000.txt`); this is not a general length limit.
 - An old-start record is exactly as exposed as in v0.8.
 - Pages inside `v0.10/` that still describe older behaviour are corrected in [ERRATA](ERRATA.md).
 
@@ -54,20 +52,19 @@ thing it guards is broken. `run-all.sh` runs the short versions.
   of the list does not matter; the list never loses a member; and any history equals a history with the refused
   inputs removed.
 - **Effect laws, kernel-checked** (`hardening/BoundEffects.lean`), as above.
-- **The form table outside Lean** (`tools/forms.mjs`), tested against the Lean source so it cannot drift, and a
+- **The form table outside Lean** (`tools/forms.mjs`), checked against the Lean source by a comparison test on the cases it covers, and a
   boundary check (`tools/within.mjs`) that answers within, exceeds or unsupported for two restriction lists.
 - **Revertible effects** (`bailiff-rehearsal/revertible.mjs`): each write carries its undo, undo runs newest first,
   and with the core every write and every undo needs its own exact approval. Tested against the three statements
   kernel-checked in `skunkworks/proved/cordis-lean/`.
 - **[THREATS.md](THREATS.md)** (who the adversary is, what is trusted, what is out of scope) and
   **[COMPARISON.md](COMPARISON.md)** (this core beside published systems, facts as stated in their sources).
-- NOT DONE in round 1: a rebuild on other hardware or by someone outside the project; a Linux build; a way for the
+- NOT DONE in round 1 (none documented by this project): a rebuild on other hardware or by someone outside the project; a Linux build; a way for the
   owner to add to a record's refused list; a record that starts from a seal instead of ending in a trap.
 
 ## v0.9: the table of forms agrees with the decoder
 `v0.9/` (SHA-256 of the small core `61e02592287d31ef8ad2ba13b15a46deff7edfd0de0c8866fe245a641abd2419`) grows the
-table to 38 forms and proves in `Proofs/FormsDecoder.lean` that the table and the decoder agree. Two independent
-from-scratch builds on one Mac gave the same bytes. The machine still admits every form everywhere.
+table to 38 forms and proves in `Proofs/FormsDecoder.lean` that the table and the decoder agree. Two from-scratch builds by project builders on one Mac gave the same bytes. v0.9 does not apply v0.10's bound-start refusal list; each operation still has its normal parsing, state and authorization conditions.
 
 ## `standalone-next/`: the adapter for bound records
 The released adapter plus the bound start, the newer owner commands, and a refusal to SIGN the two old forms in a
@@ -111,4 +108,4 @@ it is not one, because nothing forces a real system to route through it.
 
 The check scripts under `skunkworks/proved/` expect a pinned Lean toolchain at a path you set (`LAB`); they were
 run in the lab and NOT from this tree. The plain-code tests run from this tree with Node 24; the backup test also needs Python 3 and uses your system's temporary folder (it removes what it makes).
-None of this is used by any live system.
+This page documents lab checks, not live enforcement or deployment.

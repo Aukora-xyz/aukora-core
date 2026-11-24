@@ -37,7 +37,7 @@ if command -v python3 >/dev/null 2>&1; then run "backup only ever grew" node sku
 run "totals tree" node skunkworks/onion/onion-test.mjs
 run "delegation receipts" node skunkworks/delegation-exhibit/test.mjs
 run "Pentora machine: the compiled file against separate plain code" node skunkworks/proved/pentora-machine/check.mjs
-if node skunkworks/proved/pentora-machine/check.mjs control > /dev/null 2>&1; then fail=1; echo "FAIL  control: a planted wrong Pentora verdict was NOT caught"; else echo "PASS  control: a planted wrong Pentora verdict is caught"; fi
+if out=$(node skunkworks/proved/pentora-machine/check.mjs control 2>&1); then fail=1; echo "FAIL  control: a planted wrong Pentora verdict was NOT caught"; elif echo "$out" | grep -q "agreeing reports: verdict: got 0, wanted 1"; then echo "PASS  control: a planted wrong Pentora verdict is caught"; else fail=1; echo "FAIL  control: the Pentora control failed, but not on the planted wrong verdict"; fi
 run "Pentora decision stamp: the compiled file's judge against values written separately" node skunkworks/proved/pentora-machine/stamp.mjs
-if node skunkworks/proved/pentora-machine/stamp.mjs control > /dev/null 2>&1; then fail=1; echo "FAIL  control: a planted wrong stamp expectation was NOT caught"; else echo "PASS  control: a planted wrong stamp expectation is caught"; fi
+if out=$(node skunkworks/proved/pentora-machine/stamp.mjs control 2>&1); then fail=1; echo "FAIL  control: a planted wrong stamp expectation was NOT caught"; elif echo "$out" | grep -q "private limit expected judge 1, got 0"; then echo "PASS  control: a planted wrong stamp expectation is caught"; else fail=1; echo "FAIL  control: the stamp control failed, but not on the planted wrong expectation"; fi
 if [ "$fail" != 0 ]; then echo "SOMETHING FAILED"; exit 1; elif [ "$skips" != 0 ]; then echo "PASS WITH SKIPS ($skips skipped)"; else echo "ALL PASS"; fi

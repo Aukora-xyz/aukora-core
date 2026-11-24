@@ -38,7 +38,7 @@ const healthOf = r => (r.includes(0) ? 2 : r.includes(1) ? 1 : 0);
 const suspectsOf = R => { const m = seamsOf(R); if (!m) return 0; let s = 0; for (let c = 0; c < 5; c++) { let all = true; for (let v = 0; v < 20; v++) if ((m >> v) & 1 && !owners(v).includes(c)) all = false; if (all) s |= 1 << c; } return s; };
 const addressOf = g => { let n = 0n; const cells = [...g.priv.flat(), ...g.corn]; for (let i = cells.length - 1; i >= 0; i--) n = n * 3n + BigInt(cells[i]); return n; };
 const unpack = n => { const cells = []; for (let i = 0; i < 110; i++) { cells.push(Number(n % 3n)); n /= 3n; } return cells; };
-let agree = 0, liars = 0, convicted = 0, privateLies = 0, heals = 0, hidden = 0, addresses = new Set(), distinct = new Set();
+let agree = 0, liars = 0, convicted = 0, privateLies = 0, privateChanged = 0, heals = 0, hidden = 0, addresses = new Set(), distinct = new Set();
 for (let round = 0; round < 400; round++) {
   const g = body([0, 60, 90, 100][round % 4]), R = views(g); send(R); agree++;
   const expected = R.reduce((acc, r, c) => acc + healthOf(r) * 3 ** c, 0);
@@ -67,8 +67,8 @@ for (let round = 0; round < 400; round++) {
     const three = [0, 1, 2, 3, 4].filter(c => c !== a && c !== b); hidden++;
     want('three organs see no difference', three.every(c => R2[c].join('') === R[c].join('')), true);
     send(R2); want('yet the seal differs', api.seal() >>> 0, (g.corn.reduce((s, t) => s + t, 0) + 1) % 3); }
-  // Assign one private trit. In this fixed-seed sample 256 assignments change its value.
-  const P = R.map(r => [...r]); P[x][rnd(18)] = rnd(3); send(P); privateLies++; want('a private change makes no seam', api.seams() >>> 0, 0);
+  // Assign one private trit; count the assignments that change its value.
+  const P = R.map(r => [...r]); const slot = rnd(18), trit = rnd(3); if (P[x][slot] !== trit) privateChanged++; P[x][slot] = trit; send(P); privateLies++; want('a private change makes no seam', api.seams() >>> 0, 0);
 }
 want('different bodies, different addresses', addresses.size, distinct.size);
 let malformed = 0; for (const size of [0, 1, 129]) { api.reset(); for (let i = 0; i < size; i++) api.input(2); if ((api.judge() >>> 0) === 0xFFFFFFFF && (api.seams() >>> 0) === 0xFFFFFFFF && (api.addressByte(0) >>> 0) === 0xFFFFFFFF) malformed++; else bad++; }
@@ -76,6 +76,6 @@ api.reset(); for (let i = 0; i < 131; i++) api.input(2); if ((api.judge() >>> 0)
 api.reset(); for (let i = 0; i < 130; i++) api.input(i === 77 ? 3 : 2); if ((api.judge() >>> 0) === 0xFFFFFFFF) malformed++; else bad++;
 api.reset(); for (let i = 0; i < 130; i++) api.input(2); want('all 110 cells passed: verdict 0', api.judge() >>> 0, 0); want('out-of-range address byte', api.addressByte(22) >>> 0, 0xFFFFFFFF);
 console.log(`pentora.wasm ${bytes.length} bytes, sha256 ${createHash('sha256').update(bytes).digest('hex')}, imports 0, exports ${WebAssembly.Module.exports(mod).map(e => e.name).sort().join(',')}`);
-console.log(`${agree} bodies agreed and addressed. In ${liars} corner-fault cases the faulty organ was a suspect, in ${convicted} the sole suspect. Of ${privateLies} private assignments, 256 changed a trit and all preserved the zero seam mask. ${heals} corner-fault cases recovered the expected corners with the faulty index supplied. Each of ${hidden} selected triples saw identical reports for two different sums. Malformed inputs refused: ${malformed} of 5.`);
+console.log(`${agree} bodies agreed and addressed. In ${liars} corner-fault cases the faulty organ was a suspect, in ${convicted} the sole suspect. Of ${privateLies} private assignments, ${privateChanged} changed a trit and all preserved the zero seam mask. ${heals} corner-fault cases recovered the expected corners with the faulty index supplied. Each of ${hidden} selected triples saw identical reports for two different sums. Malformed inputs refused: ${malformed} of 5.`);
 if (notes.length) console.log(notes.join('\n'));
 console.log(`${ok} passed, ${bad} failed (Pentora Wasm check, malformed cases counted separately on success)`); process.exit(bad ? 1 : 0);

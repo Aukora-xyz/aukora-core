@@ -87,8 +87,7 @@ Written after outside reviews found that some prose said more than the theorems 
   that the bodies with one given three-organ view come in cycles of three, one for each sum. This is a counting fact.
   No probability statement is made in Lean.
 - `address_bits`: 3^110 < 2^175 and 2^174 < 3^110, so the address needs 175 bits.
-- `judge_agrees`: if the Lean function `judge` (the one exported to the Wasm file) returns a value below 256, the input is well formed (130
-  bytes of 0, 1 or 2) and the decoded reports have no disagreement.
+- `judge_agrees`: for the Lean function `judge`, a result below 256 implies that the input is well formed (130 bytes of 0, 1 or 2) and the decoded reports have no disagreement. The shipped C/Wasm path is compared with plain code on selected inputs by `check.mjs`; it is not proved equivalent to the Lean function.
 - `view_upd`, `bump3`, `seam_code_is_large`: helpers.
 
 ## Two figures and the twelve five-point faces (`Twin.lean`)
@@ -139,9 +138,11 @@ followed by eight corners in slot order. Input codes are 0 for failed, 1 for unk
 | `suspects()` | Zero when there are no seams. Otherwise bit `c` is set exactly when organ `c` owns every disputed corner. Disputes with no common owner also give zero. |
 | `addressByte(i)` | Byte 0 through 21 of the agreeing body's address, lowest byte first. |
 | `tally(c, t)` | Number of cells with trit `t` in organ `c`'s report. |
-| `seal()`, `centre()` | The corner sum modulo three and centre health, respectively. Both return `0xFFFFFFFF` on disagreement. |
-| `heal(x, v)` | Corner `v` read from an owner other than the supplied index `x`. The full packet must be well formed. |
+| `seal()`, `centre()` | The corner sum modulo three (not a seal on data) and centre health, respectively. Both return `0xFFFFFFFF` on disagreement. |
+| `heal(x, v)` | Corner `v` as reported by one owner other than the supplied index `x`, from a well-formed packet. It does not check that this owner is truthful or find the faulty organ; the result is the true corner only if the four organs other than `x` report truly. |
 | `owner(v, w)`, `vertex(c, j)` | For corner `v`, selector zero returns its first owner and any nonzero selector returns its second owner. Vertex lookup returns the global corner at local slot `j` of organ `c`. |
+
+`judge()` reports agreement among the five reports; it is not a safety check and grants no authority.
 
 ## What was checked
 
@@ -151,13 +152,12 @@ optional `check-rule.sh`, and its audit is in `check-rule.txt`, not in the figur
 and 18 list no axioms. It lists no axioms for the six geometry results, none for ten of the eleven `Twin.lean` results (`majority_true` lists
 `propext`), and none for `address_bits`. Nine audited results use `Classical.choice`: `seams_nil_iff`, `no_seam_one_body` and seven in
 `Stamp.lean` (`go_iff`, `one_part_cannot_force_go`, `honest_go`, `any_part_can_stop`, `two_owners_can_force`, `private_fault_can_be_hidden`,
-`judge_zero_means_go`). The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean sources contain no `sorry`.
+`judge_zero_means_go`). The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean files checked by `check.sh` and `check-rule.sh` contain no `sorry` (the check output shows none).
 
 The checker loads only the Wasm and computes expected machine outputs in separate JavaScript. Its cube search
-closely follows the Python generator. Lean checks the supplied tables. `run-all.sh` invokes both the normal run
-and the control with a planted wrong verdict.
+closely follows the Python generator. Lean checks the supplied tables. `run-all.sh` invokes both the normal run and the control with a planted wrong verdict, and requires the control to fail on that verdict (`agreeing reports: verdict: got 0, wanted 1`), not merely to exit nonzero.
 
-The checker recorded 11,633 passing comparisons on its normal run and zero failures. It counted five rejected
+The authors' run of the checker recorded 11,633 passing comparisons on its normal run and zero failures; rerun `check.mjs` to check this for yourself. It counted five rejected
 malformed cases separately. All 400 generated bodies (301 distinct) agreed and matched their expected addresses. The faulty organ
 was a suspect in all 391 corner-fault cases and the sole suspect in 241. All 391 recovered the expected corners
 with the faulty index supplied. Of 400 private assignments, 256 changed a trit (144 wrote the value already there) and all preserved the zero seam
@@ -186,7 +186,7 @@ set are the same field. `parts.py` computes this for parts of the figure, exactl
 | the axis cube (one organ) without its face centres | 20 | 3 | 16 |
 | the 20 corners / the 30 face centres / the 60 edge middles | 20 / 30 / 60 | 3 / 4 / 5 | 16 / 25 / 36 |
 
-In each row the next degree is NOT determined (the script finds the rank short). Read each row as a promise with a
+In each row the next degree is NOT determined (the script finds the rank short). The script tests every choice of organs for the degree but prints the cell count for one choice of each size; the counts for the other choices follow from how the cubes and cells overlap and were counted separately. Read each row as a promise with a
 condition: IF the field has at most that degree, those samples fix it everywhere on the sphere.
 
 It is NOT a coarse reading of a finer field. If the field has more detail than a part can determine, two different
@@ -196,12 +196,10 @@ average over the sphere.
 
 What this does not say. (1) It is a computation run on one machine, not a proof in Lean. (2) It is not a better count
 than other sample sets: for the same number of directions, directions in general position can determine at least as
-many numbers (26 general directions determine degree 4, 25 numbers, while one organ's 26 determine degree 3, 16
-numbers). A set that contains the opposite of every direction, like these, gives each opposite pair one even and one
+many numbers (26 directions in general position determine degree 4, 25 numbers, by an interpolation argument that is not a result of `parts.py`, while one organ's 26 determine degree 3, 16 numbers). A set that contains the opposite of every direction, like these, gives each opposite pair one even and one
 odd reading, so 26 such directions give only 13 even readings, fewer than the 15 coefficients of a degree-4 even
 part. What the figure adds is that every choice of the same number of organs gives the same highest degree, in exact
-arithmetic. (3) The table gives exact recovery guarantees for fields of bounded degree from the listed samples; no
-claim is made about recovering an arbitrary stored file. (4) `parts.py` assumes correct readings and supplies no
+arithmetic. (3) Under exact, noiseless measurements and the stated degree bound, the computed ranks show unique determination of the field for these sample sets; nothing is claimed about noisy or adversarial measurements or about recovering an arbitrary stored file. (4) `parts.py` assumes correct readings and supplies no
 decoder for wrong reports. (5) This computation examines only the sample directions. (6) It has not been checked
 for novelty.
 
@@ -230,9 +228,7 @@ numbers are even, and half the point less (1, 1, 1) is in that lattice.
 
 What this does not say. It is a second, table-free definition of the same 110 points; a stored table answers
 membership too. The proof is a bound plus a finite check; it gives no geometric derivation of the rule. "Six whole numbers" is how these coordinates
-are written; no statement about a six-dimensional lattice or projection is made. Checking this file took about 45
-seconds and up to 3 GB of memory in the Lean kernel on the laptop it was measured on (the stored audit does not record
-those figures), heavier than the other checks, so it is checked separately by the optional `check-rule.sh` (its audit is `check-rule.txt`) and is not part of `run-all.sh`. The
+are written; no statement about a six-dimensional lattice or projection is made. The maintainers measured 48 seconds and 2.79 GB peak (macOS `/usr/bin/time -l`) for checking this file on one laptop (the stored audit does not record those figures), heavier than the other checks, so it is checked separately by the optional `check-rule.sh` (its audit is `check-rule.txt`) and is not part of `run-all.sh`. The
 rule itself was suggested by an outside review; the Lean statement, its proof and the enumeration were written here.
 We make no claim of novelty. To re-run the enumeration: `python3 skunkworks/proved/pentora-machine/rule.py`.
 
