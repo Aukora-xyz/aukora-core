@@ -165,3 +165,42 @@ faulty Wasm file. Each of 400 selected triples saw identical reports for two dif
 
 The lab reports compiling the executable definitions to Wasm. The Lean audit checks the source and the JavaScript
 comparison exercises the shipped bytes. No live integration or outside rebuild is documented here.
+
+## What each part determines of a field on the sphere (a RUN in exact arithmetic; not a Lean theorem)
+
+A field here is a polynomial in x, y, z read on the unit sphere. Degree at most L means (L + 1)² independent
+numbers. A set of sample directions DETERMINES degree L when two such fields that agree in every direction of the
+set are the same field. `parts.py` computes this for parts of the figure, exactly, using pairs of fractions to stand for numbers of the form a + b·φ (φ the golden ratio)
+(about a minute); its output is `parts.txt`.
+
+| Sample directions | Cells | Determines degree | Numbers |
+| --- | --- | --- | --- |
+| all five organs | 110 | 9 | 100 |
+| any four organs (all 5 choices) | 92 | 7 | 64 |
+| any three organs (all 10 choices) | 72 | 7 | 64 |
+| any two organs (all 10 choices) | 50 | 5 | 36 |
+| any one organ (all 5 choices) | 26 | 3 | 16 |
+| corners and edge middles, no face centres | 80 | 7 | 64 |
+| the axis cube (one organ) without its face centres | 20 | 3 | 16 |
+| the 20 corners / the 30 face centres / the 60 edge middles | 20 / 30 / 60 | 3 / 4 / 5 | 16 / 25 / 36 |
+
+In each row the next degree is NOT determined (the script finds the rank short). Read each row as a promise with a
+condition: IF the field has at most that degree, those samples fix it everywhere on the sphere.
+
+It is NOT a coarse reading of a finer field. If the field has more detail than a part can determine, two different
+fields can agree on every sample of the part and still have different averages over the sphere.
+Example (exact): the degree-8 field (xy(x² - y²))² is zero at every sample of the axis cube and has a positive
+average over the sphere.
+
+What this does not say. (1) It is a computation run on one machine, not a proof in Lean. (2) It is not a better count
+than other sample sets: for the same number of directions, directions in general position can determine at least as
+many numbers (26 general directions determine degree 4, 25 numbers, while one organ's 26 determine degree 3, 16
+numbers). A set that contains the opposite of every direction, like these, gives each opposite pair one even and one
+odd reading, so 26 such directions give only 13 even readings, fewer than the 15 coefficients of a degree-4 even
+part. What the figure adds is that every choice of the same number of organs gives the same highest degree, in exact
+arithmetic. (3) The table gives exact recovery guarantees for fields of bounded degree from the listed samples; no
+claim is made about recovering an arbitrary stored file. (4) `parts.py` assumes correct readings and supplies no
+decoder for wrong reports. (5) This computation examines only the sample directions. (6) It has not been checked
+for novelty.
+
+To re-run it: `python3 skunkworks/proved/pentora-machine/parts.py` (about 45 seconds, Python 3 standard library only) and compare with `parts.txt`. It is not part of `run-all.sh`.
