@@ -1,5 +1,6 @@
 import Pentora
 import Entry
+import Twin
 open Pentora
 #print axioms twenty_vertices
 #print axioms five_cubes
@@ -40,3 +41,14 @@ open Pentora
 #print axioms cnt_fins
 #print axioms seal_known_to_four
 #print axioms seal_hidden_from_three
+#print axioms flip_fixes_cube0
+#print axioms twin_is_a_pentora
+#print axioms two_figures_share_one_cube
+#print axioms rational_cells_are_cube0
+#print axioms shared_corner_three_owners
+#print axioms majority_true
+#print axioms twelve_faces
+#print axioms face_meets_every_cube_once
+#print axioms face_has_five_pairs
+#print axioms corner_in_three_faces
+#print axioms face_fits_a_byte

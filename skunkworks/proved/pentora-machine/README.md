@@ -7,7 +7,7 @@ can run.
 
     node skunkworks/proved/pentora-machine/check.mjs            # the compiled file against plain code (Node only)
     node skunkworks/proved/pentora-machine/check.mjs control    # must FAIL
-    LEAN=/path/to/lean-4.19.0/bin/lean sh check.sh              # the proofs again, about ten seconds
+    LEAN=/path/to/lean-4.19.0/bin/lean sh check.sh              # the proofs again, about twenty seconds
 
 ## The figure (`Pentora.lean`, part 1; these six theorems use NO axioms)
 Coordinates are numbers a + b·φ with whole a and b (φ² = φ + 1). No decimals, no rounding.
@@ -50,7 +50,23 @@ A private cell has one owner. A corner has exactly two. The centre belongs to al
 - `centre_zero_iff`, `local_fail_reaches_centre`, `centre_of_address`: THE CENTRE. The one cell of all five cubes has
   no digit in the address. It is read off the other 110: clear exactly when every cell passed, failed as soon as any
   one organ sees a failure, and fixed by the address, so nothing can set it by itself.
-39 theorems in all; axioms `propext`, `Quot.sound`, and `Classical.choice` in two (`check.txt`). No `sorry`.
+## Two figures, and the faces (`Twin.lean`, part 4; ten of its eleven theorems use NO axioms)
+The golden flip sends φ to 1 - φ. It keeps every whole-number relation, so it turns the figure into a second figure
+of the same kind (`twin_is_a_pentora`).
+- `flip_fixes_cube0`, `two_figures_share_one_cube`, `rational_cells_are_cube0`: WHERE TWO FIGURES MEET. The figure and
+  its twin have exactly 27 cells in common: one whole cube, with its 8 corners, 12 edge middles, 6 face centres and
+  the centre. Those 27 are exactly the cells whose coordinates are whole numbers. Everything the two share is
+  rational; every cell that needs φ belongs to one side only.
+- `shared_corner_three_owners`, `majority_true`: at the shared cube every corner has THREE owners (the shared cube and
+  one cube of each figure), and two of three is the truth when at most one is wrong. Inside one figure a false owner
+  is caught; where two figures meet it is also overruled on the spot.
+- `twelve_faces`, `face_meets_every_cube_once`, `face_has_five_pairs`, `corner_in_three_faces`, `face_fits_a_byte`:
+  THE FLAT FACES. Each of the 12 flat faces carries all five cubes, once each: a diagonal of the pentagon is an edge
+  of a cube. Five cells, five different pairs of owners, 243 states: one byte. A face is the smallest flat reading
+  of the whole body, and every organ is on it.
+`twin.py` computes the same facts a second time in exact arithmetic (RAN: 12 faces, 27 shared cells, 195 in the pair).
+50 theorems in all; 17 use no axioms, the rest `propext`, `Quot.sound`, and `Classical.choice` in two (`check.txt`).
+No `sorry`.
 
 ## The compiled file (RAN)
 `pentora.wasm`: 151,039 bytes, no imports, SHA-256
@@ -82,5 +98,8 @@ three parts can read. It fits in a line of a record.
    claimed that this beats another layout with the same property.
 5. It is an instrument. A verdict carries no authority, the core's record machine does not use it, and it is wired
    into no live system. What the cells MEAN (which checks an organ runs) is not part of this file.
-6. The WebAssembly file was built in the lab; the build needs the lab's small runtime, which is not in this tree.
+6. Which cube is the rational one depends on how the figure is placed; turning it makes any of the five the shared
+   one. Part 4 is counting and one voting law. No machine for two bodies is compiled yet, and there is no protocol.
+   Nothing in this folder is a hash, a compression method or a reader of images.
+7. The WebAssembly file was built in the lab; the build needs the lab's small runtime, which is not in this tree.
    Nobody outside has rebuilt it.

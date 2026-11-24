@@ -4,4 +4,4 @@
 set -eu
 G="$(cd "$(dirname "$0")" && pwd)"; LEAN="${LEAN:?set LEAN to a Lean 4.19.0 binary}"
 mkdir -p "$G/work"; cd "$G"
-{ "$LEAN" -j1 --root="$G" -o work/Pentora.olean Pentora.lean && LEAN_PATH="$G/work" "$LEAN" -j1 --root="$G" -o work/Entry.olean Entry.lean && LEAN_PATH="$G/work" "$LEAN" -j1 Axioms.lean; } > check.txt 2>&1; echo "exit $?" >> check.txt; cat check.txt
+{ "$LEAN" -j1 --root="$G" -o work/Pentora.olean Pentora.lean && LEAN_PATH="$G/work" "$LEAN" -j1 --root="$G" -o work/Entry.olean Entry.lean && LEAN_PATH="$G/work" "$LEAN" -j1 --root="$G" -o work/Twin.olean Twin.lean && LEAN_PATH="$G/work" "$LEAN" -j1 Axioms.lean; } > check.txt 2>&1; echo "exit $?" >> check.txt; cat check.txt
