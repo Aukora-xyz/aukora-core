@@ -149,10 +149,10 @@ followed by eight corners in slot order. Input codes are 0 for failed, 1 for unk
 
 ## What was checked
 
-The six Lean files that `check.sh` checks declare 91 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in `Twin.lean`, 9 in `Sharper.lean`, 12 in `Stamp.lean`, 2 in `StampBytes.lean`). A seventh file, `Rule.lean`, adds 9 more (100 in all); it is checked by the separate,
-optional `check-rule.sh`, and its audit is in `check-rule.txt`, not in the figures below. The stored axiom audit (`check.txt`) lists 70 of the 91
+The seven Lean files that `check.sh` checks declare 97 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in `Twin.lean`, 9 in `Sharper.lean`, 12 in `Stamp.lean`, 2 in `StampBytes.lean`, 6 in `Degraded.lean`). An eighth file, `Rule.lean`, adds 9 more (106 in all); it is checked by the separate,
+optional `check-rule.sh`, and its audit is in `check-rule.txt`, not in the figures below. The stored axiom audit (`check.txt`) lists 76 of the 97
 and 18 list no axioms. It lists no axioms for the six geometry results, none for ten of the eleven `Twin.lean` results (`majority_true` lists
-`propext`), and none for `address_bits`. Ten audited results use `Classical.choice`: `seams_nil_iff`, `no_seam_one_body`, seven in `Stamp.lean` (`go_iff`, `one_part_cannot_force_go`, `honest_go`, `any_part_can_stop`, `two_owners_can_force`, `private_fault_can_be_hidden`, `judge_zero_means_go`) and `judge_zero_iff` in `StampBytes.lean`. The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean files checked by `check.sh` and `check-rule.sh` contain no `sorry` (the check output shows none).
+`propext`), and none for `address_bits`. Twelve audited results use `Classical.choice`: `seams_nil_iff`, `no_seam_one_body`, seven in `Stamp.lean` (`go_iff`, `one_part_cannot_force_go`, `honest_go`, `any_part_can_stop`, `two_owners_can_force`, `private_fault_can_be_hidden`, `judge_zero_means_go`) `judge_zero_iff` in `StampBytes.lean`, and `go_gives_go4` and `offline_neighbour_can_force` in `Degraded.lean`. The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean files checked by `check.sh` and `check-rule.sh` contain no `sorry` (the check output shows none).
 
 The checker loads only the Wasm and computes expected machine outputs in separate JavaScript. Its cube search
 closely follows the Python generator. Lean checks the supplied tables. `run-all.sh` invokes both the normal run and the control with a planted wrong verdict, and requires the control to fail on that verdict (`agreeing reports: verdict: got 0, wanted 1`), not merely to exit nonzero.
@@ -263,3 +263,18 @@ Each pair of distinct organs shares two corners. The stamp labels the lower-numb
 These are statements about the Lean function `judge`. Verification of the compiled file is outside the scope of these proofs; On its examples, `stamp.mjs` checks the shipped `judge` result against values or ranges specified in JavaScript; some expected values use corner mappings read from the same Wasm file.
 
 To re-run the stamp check: `node skunkworks/proved/pentora-machine/stamp.mjs` (about 0.1 second; `run-all.sh` runs it and its control).
+
+## What the four-report rule checks with one organ offline (`Degraded.lean`)
+
+Choose which of the five organs is offline. The four-report rule ignores that organ’s report. A cell can be marked **pass**, **fail**, or **unknown**.
+
+- `go4_iff` says the rule accepts exactly when every cell in the four remaining reports is marked pass and both owners give the same answer at every corner they can still compare.
+- `go_gives_go4` says that if the five-report rule accepts, the four-report rule accepts whichever organ goes offline.
+- `honest_go4` says that if the four online organs report their true views, the rule accepts exactly when all their private cells and all 20 corners of the body passed. Every corner still has at least one online owner.
+- `one_part_cannot_force_go4` says that if one organ is offline, a second organ may report anything, and the other three report their true views, a failed or unknown corner forces rejection whenever at least one of its owners is among those three.
+- `offline_neighbour_can_force` gives an example in which a corner failed, one owner is offline, and the other owner reports a pass. The three organs outside the pair report their true views, and the rule accepts.
+- `two_unwitnessed_corners` says that for any choice of offline organ and any other organ, exactly two corners belong to that pair. At those two corners the online organ is the only remaining reporter.
+
+**What this does not say.** Acceptance tells you nothing about the offline organ’s 18 private cells. If an online organ conceals a fault at a corner it shares with the offline organ, the other three have no report of that corner to compare.
+
+`degraded.mjs` computes the four-report rule in JavaScript, because the shipped Wasm has no call for it. It checks that JavaScript copy on generated reports (2,000 visible bad corners and 2,000 hidden shared corners) and, in 2,000 further trials, that the shipped five-report `judge` returns nonzero for a packet with one nonpassing entry and zero after it is repaired, and that the JavaScript rule then accepts the repaired all-pass packet for each of the five offline choices; a planted wrong expectation makes it fail. It does not run the Lean function. To re-run it: `node skunkworks/proved/pentora-machine/degraded.mjs` (a second; `run-all.sh` runs it and its control).
