@@ -78,14 +78,16 @@ compute the sum as `20t mod 3`. Any caller with an agreeing buffer can read `sea
 Written after outside reviews found that some prose said more than the theorems in `Pentora.lean`. Nothing in
 `Pentora.lean` or `Entry.lean` changed. Each theorem here says exactly one thing.
 
-- `convicted_alone`: if four organs report the body truly, and the reports disagree at two corners whose only common
-  owner is organ x, then x is a suspect and every suspect equals x.
+- `convicted_alone`: if the four organs other than x report the body truly, and the reports disagree at two corners
+  whose only common owner is organ x, then x is a suspect and every suspect equals x.
 - `shift_unseen`, `shift_seal`, `shift_cycle`: leave out two different organs x and y, and move the lower corner
   that only they own one step. The other three organs' views are unchanged, the sum modulo three goes up by one, and
-  three such moves give back the same body. So the bodies with one given three-organ view come in cycles of three,
-  one for each sum. This is a counting fact. No probability statement is made in Lean.
+  three such moves give back the same body. (`shift_seal` and `shift_cycle` hold for any corner; only `shift_unseen`
+  needs the corner that only those two organs own.) It follows, by an argument in prose that is not a Lean theorem,
+  that the bodies with one given three-organ view come in cycles of three, one for each sum. This is a counting fact.
+  No probability statement is made in Lean.
 - `address_bits`: 3^110 < 2^175 and 2^174 < 3^110, so the address needs 175 bits.
-- `judge_agrees`: if the compiled entry function `judge` returns a value below 256, the input is well formed (130
+- `judge_agrees`: if the Lean function `judge` (the one exported to the Wasm file) returns a value below 256, the input is well formed (130
   bytes of 0, 1 or 2) and the decoded reports have no disagreement.
 - `view_upd`, `bump3`, `seam_code_is_large`: helpers.
 
@@ -143,8 +145,8 @@ followed by eight corners in slot order. Input codes are 0 for failed, 1 for unk
 
 ## What was checked
 
-The four Lean files declare 78 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in
-`Twin.lean`, 10 in `Sharper.lean`). The stored axiom audit lists 56 of them and 18 list no axioms. It lists no axioms
+The four Lean files declare 77 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in
+`Twin.lean`, 9 in `Sharper.lean`). The stored axiom audit lists 56 of them and 18 list no axioms. It lists no axioms
 for the six geometry results, none for ten of the eleven `Twin.lean` results (`majority_true` lists `propext`), and
 none for `address_bits`. Two audited results use `Classical.choice` (`seams_nil_iff` and `no_seam_one_body`).
 The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean sources contain no `sorry`.
@@ -157,7 +159,7 @@ The checker recorded 11,633 passing comparisons on its normal run and zero failu
 malformed cases separately. All 400 generated bodies (301 distinct) agreed and matched their expected addresses. The faulty organ
 was a suspect in all 391 corner-fault cases and the sole suspect in 241. All 391 recovered the expected corners
 with the faulty index supplied. Of 400 private assignments, 256 changed a trit (144 wrote the value already there) and all preserved the zero seam
-mask. The 400 generated bodies include 301 distinct ones. A review observation, not re-checked here: the
+mask. A review observation, not re-checked here: the
 private-change check and the seal check test properties built into the examples, so on their own they cannot catch a
 faulty Wasm file. Each of 400 selected triples saw identical reports for two different sums.
 

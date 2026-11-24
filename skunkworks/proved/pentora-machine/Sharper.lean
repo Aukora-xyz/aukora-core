@@ -5,8 +5,8 @@ Written after an outside review found that the words around some theorems of `Pe
 theorems. Nothing in `Pentora.lean` or `Entry.lean` is changed. Each theorem here says exactly one thing. -/
 namespace Pentora
 
-/-- NAMING ONE FALSE ORGAN, exactly. Suppose four organs report the body truly, and the reports disagree at two
-    corners whose only common owner is x. Then x is a suspect and it is the only one. (With no disagreement there
+/-- NAMING ONE FALSE ORGAN, exactly. Suppose the four organs other than x report the body truly, and the reports
+    disagree at two corners whose only common owner is x. Then x is a suspect and it is the only one. (With no disagreement there
     are no suspects; with disagreements against one neighbour only, there are two.) -/
 theorem convicted_alone (g : Body) (R : Fin 5 → Report) (x : Fin 5) (honest : ∀ c, c ≠ x → R c = view g c)
     (v w : Fin 20) (mv : v ∈ seams R) (mw : w ∈ seams R)
@@ -56,7 +56,8 @@ theorem shift_seal (g : Body) (v : Fin 20) : sealOf (shift g v) = (sealOf g + 1)
   show sumC (upd g.corn v (bump (g.corn v))) (fins 20) % 3 = (sumC g.corn (fins 20) % 3 + 1) % 3
   omega
 
-/-- THREE SHIFTS COME BACK. So shifting is a one-to-one pairing of bodies with themselves, in cycles of three. -/
+/-- THREE SHIFTS COME BACK to the same body. That the bodies then fall into cycles of three is an inference in prose;
+    Lean states only this. -/
 theorem shift_cycle (g : Body) (v : Fin 20) : shift (shift (shift g v) v) v = g := by
   apply Body.ext'
   · rfl
@@ -65,8 +66,8 @@ theorem shift_cycle (g : Body) (v : Fin 20) : shift (shift (shift g v) v) v = g 
     · subst e; simp [shift, upd, bump3]
     · simp [shift, upd, e]
 
-/-! Read together, the three theorems above are the usual secrecy argument for this way of sharing: the bodies that
-    look a given way to three organs fall into cycles g, shift g, shift (shift g), one body for each seal. If the
+/-! Read together, the three theorems above are the counting step of the usual secrecy argument for this way of
+    sharing: the bodies that look a given way to three organs fall into cycles g, shift g, shift (shift g), one body for each seal. If the
     blind corner was filled at random, evenly, then what three organs see says nothing about the seal. The theorems
     are about counting; no statement about chance is made in Lean. -/
 
@@ -75,7 +76,8 @@ theorem address_bits : 3 ^ 110 < 2 ^ 175 ∧ 2 ^ 174 < 3 ^ 110 := by decide
 
 theorem seam_code_is_large : ∀ v : Fin 20, ¬ ((256 + v.val).toUInt32 < 256) := by decide +kernel
 
-/-- WHAT THE COMPILED `judge` SAYS, on the bytes themselves. An answer below 256 means the input was 130 bytes of
+/-- WHAT THE LEAN FUNCTION `judge` SAYS (the function exported to the Wasm file; this is about its Lean text, not the
+    compiled bytes), on the bytes themselves. An answer below 256 means the input was 130 bytes of
     0, 1, 2 AND the five reports agree; then exactly one body stands behind them (`no_seam_one_body`). -/
 theorem judge_agrees (b : ByteArray) (h : judge b < 256) :
     wellFormed b = true ∧ seams (reportOf b) = [] := by

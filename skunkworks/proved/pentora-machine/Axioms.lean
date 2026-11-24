@@ -3,7 +3,7 @@ import Entry
 import Twin
 import Sharper
 open Pentora
--- Selected axiom audit: 56 of the 78 theorem declarations in the four Lean files, including helpers in the total.
+-- Selected axiom audit: 56 of the 77 theorem declarations in the four Lean files, including helpers in the total.
 #print axioms twenty_vertices
 #print axioms five_cubes
 #print axioms each_corner_in_two
