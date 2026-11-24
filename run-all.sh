@@ -38,4 +38,6 @@ run "totals tree" node skunkworks/onion/onion-test.mjs
 run "delegation receipts" node skunkworks/delegation-exhibit/test.mjs
 run "Pentora machine: the compiled file against separate plain code" node skunkworks/proved/pentora-machine/check.mjs
 if node skunkworks/proved/pentora-machine/check.mjs control > /dev/null 2>&1; then fail=1; echo "FAIL  control: a planted wrong Pentora verdict was NOT caught"; else echo "PASS  control: a planted wrong Pentora verdict is caught"; fi
+run "Pentora decision stamp: the compiled file's judge against values written separately" node skunkworks/proved/pentora-machine/stamp.mjs
+if node skunkworks/proved/pentora-machine/stamp.mjs control > /dev/null 2>&1; then fail=1; echo "FAIL  control: a planted wrong stamp expectation was NOT caught"; else echo "PASS  control: a planted wrong stamp expectation is caught"; fi
 if [ "$fail" != 0 ]; then echo "SOMETHING FAILED"; exit 1; elif [ "$skips" != 0 ]; then echo "PASS WITH SKIPS ($skips skipped)"; else echo "ALL PASS"; fi

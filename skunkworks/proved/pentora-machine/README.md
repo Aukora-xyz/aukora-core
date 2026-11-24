@@ -145,11 +145,13 @@ followed by eight corners in slot order. Input codes are 0 for failed, 1 for unk
 
 ## What was checked
 
-The four Lean files declare 77 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in
-`Twin.lean`, 9 in `Sharper.lean`). A fifth file, `Rule.lean`, adds 9 more (86 in all); it is checked by the separate, optional `check-rule.sh`, and its audit is in `check-rule.txt`, not in the figures below. The stored axiom audit lists 56 of them and 18 list no axioms. It lists no axioms
-for the six geometry results, none for ten of the eleven `Twin.lean` results (`majority_true` lists `propext`), and
-none for `address_bits`. Two audited results use `Classical.choice` (`seams_nil_iff` and `no_seam_one_body`).
-The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean sources contain no `sorry`.
+The five Lean files that `check.sh` checks declare 89 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in
+`Twin.lean`, 9 in `Sharper.lean`, 12 in `Stamp.lean`). A sixth file, `Rule.lean`, adds 9 more (98 in all); it is checked by the separate,
+optional `check-rule.sh`, and its audit is in `check-rule.txt`, not in the figures below. The stored axiom audit (`check.txt`) lists 68 of the 89
+and 18 list no axioms. It lists no axioms for the six geometry results, none for ten of the eleven `Twin.lean` results (`majority_true` lists
+`propext`), and none for `address_bits`. Nine audited results use `Classical.choice`: `seams_nil_iff`, `no_seam_one_body` and seven in
+`Stamp.lean` (`go_iff`, `one_part_cannot_force_go`, `honest_go`, `any_part_can_stop`, `two_owners_can_force`, `private_fault_can_be_hidden`,
+`judge_zero_means_go`). The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean sources contain no `sorry`.
 
 The checker loads only the Wasm and computes expected machine outputs in separate JavaScript. Its cube search
 closely follows the Python generator. Lean checks the supplied tables. `run-all.sh` invokes both the normal run
@@ -233,3 +235,28 @@ seconds and up to 3 GB of memory in the Lean kernel on the laptop it was measure
 those figures), heavier than the other checks, so it is checked separately by the optional `check-rule.sh` (its audit is `check-rule.txt`) and is not part of `run-all.sh`. The
 rule itself was suggested by an outside review; the Lean statement, its proof and the enumeration were written here.
 We make no claim of novelty. To re-run the enumeration: `python3 skunkworks/proved/pentora-machine/rule.py`.
+
+## The decision stamp (`Stamp.lean`)
+
+Each pair of distinct organs shares two corners. The stamp labels the lower-numbered corner *truth* and the higher-numbered corner *safety*. It reads the five organs’ reports and returns `true` for accept or `false` for reject.
+
+- `corner_order` says that for any two distinct organs, their truth corner has a lower number than their safety corner.
+- `corner_owners` says that for either label and any two distinct organs, those two organs are exactly the owners of the selected corner.
+- `corner_symm` says that swapping the order of the organs selects the same corner for a given label.
+- `corner_kind_iff` says that a corner’s two owners select that corner exactly when the requested label is the one `kindOf` assigns to it.
+- `go_iff` says that the stamp accepts exactly when both owners agree at every corner and every cell in every report passed.
+- `report_pass_iff` says that every cell in one report passed exactly when all 18 private slots and all eight corner slots in that report passed.
+- `one_part_cannot_force_go` says that if a body has a failed or unknown corner and four organs report their true views of that body, the stamp rejects whatever the fifth organ reports.
+- `honest_go` says that when all five organs report their true views of a body, the stamp accepts exactly when all its private cells and all its shared corners passed.
+- `any_part_can_stop` says that if any organ reports even one failed or unknown cell, the stamp rejects the five reports.
+- `two_owners_can_force` gives a body with a corner that did not pass and reports the stamp accepts, with all three organs outside that corner’s owner pair reporting their true views.
+- `private_fault_can_be_hidden` gives a body with a private cell that did not pass and reports the stamp accepts, with all four organs other than the cell’s owner reporting their true views.
+- `judge_zero_means_go` says that if the Lean function `judge` returns zero for a byte packet, the stamp accepts the reports decoded from that packet.
+
+`stamp.mjs` runs the shipped Pentora Wasm: it builds reports, sends them to `judge()` and compares the result with values it computes separately in the script (PASS on 10 pairs, 2,000 single-organ trials, 500 veto trials and 2 limit cases; a planted wrong expectation makes it fail). It does not read the Lean file.
+
+### What this does not say
+
+*Truth* and *safety* are names for the two corners of a pair. Lean treats each check as a supplied value and assigns it no real-world meaning. In one model example both owners report `.pass` for a shared corner whose body value is `.fail`; in another one organ reports `.pass` for a private cell whose body value is `.unknown`; the stamp accepts both sets of reports. The function `go` reads reports. `judge_zero_means_go` is one direction: a zero from `judge` means the stamp accepts. The Lean file does not state that every accepted set of reports gives zero; `stamp.mjs` checks that only on its examples. A malformed packet (a byte other than 0, 1 or 2, or the wrong length) makes the shipped file's `judge` answer 4,294,967,295, so only a zero is an accept. Nothing requires a real system to call it before acting. We make no claim of novelty.
+
+To re-run the stamp check: `node skunkworks/proved/pentora-machine/stamp.mjs` (about 0.1 second; `run-all.sh` runs it and its control).

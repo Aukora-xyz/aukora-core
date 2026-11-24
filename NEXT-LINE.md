@@ -101,8 +101,8 @@ it is not one, because nothing forces a real system to route through it.
   exactly 27 points, all in cube 0 (listed points, not solid cubes), a majority-of-three law, and twelve listed
   five-point sets that each meet every listed cube. `Sharper.lean` restates five
   claims exactly (a sole suspect with its precondition, the three-organ cycles of bodies, the 175-bit address, and what
-  the Lean function `judge` says). The four Lean files declare 77 theorems including helpers, and the stored axiom audit
-  lists 56. `Rule.lean`, checked separately and optionally (`check-rule.sh`), adds 9 more theorems: a test on six whole numbers that passes exactly the 110 outer cells. The lab reports compiling the executable
+  the Lean function `judge` says). The five Lean files `check.sh` checks declare 89 theorems including helpers, and the stored axiom audit
+  lists 68. `Stamp.lean` (12 theorems) defines a decision stamp over the five reports and states what it can and cannot force, with two limits shown by examples; the shipped file's `judge` returning zero is checked against it by `stamp.mjs`. `Rule.lean`, checked separately and optionally (`check-rule.sh`), adds 9 more theorems: a test on six whole numbers that passes exactly the 110 outer cells. The lab reports compiling the executable
   definitions to Wasm. `run-all.sh` runs the JavaScript comparison and its planted control. The verdict carries
   no authority. No live integration or outside rebuild is documented here.
 - `delegation-exhibit/`, `bubble/`, `alibi/`: exhibits of delegation receipts and of two ways to show what a record
