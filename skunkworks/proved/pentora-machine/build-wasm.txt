@@ -1,0 +1,13 @@
+toolchain/downloads/lean4-v4.19.0-source.tar.gz: OK
+Extracted 557 files from the pinned Lean source.
+Built route2.a (8 runtime units), platform.o and shim.o.
+Lean Pentora: exit 0, peak 773 MiB (peak RSS or sampled footprint)
+Lean Entry: exit 0, peak 222 MiB (peak RSS or sampled footprint)
+Lean Twin: exit 0, peak 1447 MiB (peak RSS or sampled footprint)
+Lean Sharper: exit 0, peak 239 MiB (peak RSS or sampled footprint)
+Lean Axioms: exit 0, peak 201 MiB (peak RSS or sampled footprint)
+40 external references (including header inlines): skunkworks/proved/pentora-machine/work/build-wasm/external-refs.txt
+209 generated functions, 134 closed constants
+skunkworks/proved/pentora-machine/work/build-wasm/pentora.wasm  151039 bytes  SHA-256 f735a7f915b97c80a7fbca9b6450ff72733f549207702aba3a8b54f8ced3596f
+skunkworks/proved/pentora-machine/pentora.wasm  SHA-256 f735a7f915b97c80a7fbca9b6450ff72733f549207702aba3a8b54f8ced3596f
+MATCH

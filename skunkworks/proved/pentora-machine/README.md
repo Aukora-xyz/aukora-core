@@ -11,8 +11,10 @@ Run these commands from the repository root.
     node skunkworks/proved/pentora-machine/check.mjs control    # a planted wrong expectation must fail
         LEAN=/path/to/lean-4.19.0/bin/lean sh skunkworks/proved/pentora-machine/check.sh
         LEAN=/path/to/lean-4.19.0/bin/lean sh skunkworks/proved/pentora-machine/check-rule.sh    # optional, heavier: see "A rule on six whole numbers"
-    LEAN=/path/to/lean-4.19.0/bin/lean sh skunkworks/proved/pentora-machine/check-arkpairs.sh    # optional, light: see "The ten ARK pieces on the ten pairs"
+        LEAN=/path/to/lean-4.19.0/bin/lean sh skunkworks/proved/pentora-machine/check-arkpairs.sh    # optional, light: see "The ten ARK pieces on the ten pairs"
 
+
+    TOOLCHAIN=toolchain sh skunkworks/proved/pentora-machine/build-wasm.sh    # rebuilds pentora.wasm and prints MATCH only if byte-identical (Apple-silicon macOS, fetched toolchain)
 
 With the toolchain fetched as the root README describes, `LEAN=toolchain/lean-4.19.0-darwin_aarch64/bin/lean` works for the Lean scripts (one outside run, for `check.sh` and `check-rule.sh`).
 
@@ -46,7 +48,7 @@ indices. It leaves the assignment of individual private slots to edge midpoints 
   reports leaves zero seams and zero suspects (`private_cells_unwitnessed`). Two owners can also report the
   same false value at a shared corner without producing a seam there.
 - If the four other organs report truthfully about one common body and the only disagreements are at two corners
-  whose only common owner is organ x, the machine's `suspects()` names x alone. `liar_among_suspects` proves that
+  whose only common owner is organ x, `convicted_alone` proves that x is in the Lean suspect list and every member equals x; `check.mjs` compares the Wasm suspect mask on selected packets. `liar_among_suspects` proves that
   the faulty organ is among the suspects when there is a seam. `convicted` says every suspect equals the proposed
   owner; that holds trivially for an empty suspect list, and its common-owner premise holds vacuously for disjoint
   owner pairs. Neither theorem alone states the claim above, and the extra condition matters: seams at corners 0, 1
@@ -144,7 +146,7 @@ followed by eight corners in slot order. Input codes are 0 for failed, 1 for unk
 | `addressByte(i)` | Byte 0 through 21 of the agreeing body's address, lowest byte first. |
 | `tally(c, t)` | Number of cells with trit `t` in organ `c`'s report. |
 | `seal()`, `centre()` | The corner sum modulo three (not a seal on data) and centre health, respectively. Both return `0xFFFFFFFF` on disagreement. |
-| `heal(x, v)` | Corner `v` as reported by one owner other than the supplied index `x`, from a well-formed packet. It does not check that this owner is truthful or find the faulty organ; the result is the true corner only if the four organs other than `x` report truly. |
+| `heal(x, v)` | Corner `v` as reported by one owner other than the supplied index `x`, from a well-formed packet. It does not check that this owner is truthful or find the faulty organ; if the four organs other than `x` report truly, `heal_true` guarantees the correct value at every corner. |
 | `owner(v, w)`, `vertex(c, j)` | For corner `v`, selector zero returns its first owner and any nonzero selector returns its second owner. Vertex lookup returns the global corner at local slot `j` of organ `c`. |
 
 `judge()` reports agreement among the five reports; it is not a safety check and grants no authority.
@@ -166,8 +168,7 @@ mask. A review observation, not re-checked here: the
 private-change check and the seal check test properties built into the examples, so on their own they cannot catch a
 faulty Wasm file. Each of 400 selected triples saw identical reports for two different sums.
 
-The lab reports compiling the executable definitions to Wasm. The Lean audit checks the source and the JavaScript
-comparison exercises the shipped bytes. No live integration or outside rebuild is documented here.
+`build-wasm.sh` rebuilds `pentora.wasm` from this repository with the pinned Lean 4.19.0 and WASI SDK 25 and prints `MATCH` only if the result is byte-identical to the shipped file (`build-wasm.txt` is a stored run; two runs on one Apple-silicon Mac, 44 seconds and 1.5 GB at peak in one). It assumes Apple-silicon macOS and is not a Linux build. `EXPORTS.md` maps each of the twelve calls to its Lean function and theorems and marks which links are proved, which are only compared on selected inputs, and which are hand-written C; `ASSUMPTIONS.md` lists the premises and limits in plain words. The Lean audit checks the source and the JavaScript comparison exercises the shipped bytes. No live integration and no rebuild by an outside party are documented here.
 
 ## What each part determines of a field on the sphere (a RUN in exact arithmetic; not a Lean theorem)
 
