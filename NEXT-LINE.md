@@ -92,8 +92,8 @@ it is not one, because nothing forces a real system to route through it.
 - `proved/pentora-machine/` checks 20 listed vertices and five cube distance signatures in Lean. Among the 110
   sampled outer cells, only corners are shared. All five cubes also share the origin. Agreeing reports describe
   one unique body with a lossless 22-byte address. With four truthful organs, one false corner makes both owners
-  suspects. The faulty organ owns every disagreement and is the sole suspect when two different neighbours are
-  involved. A private-only change to agreeing reports gives zero suspects. Given the excluded index and a valid
+  suspects. The faulty organ owns every disagreement, and it is the sole suspect when the other four organs report
+  truthfully and the only disagreements are at two corners whose only common owner is that organ. A private-only change to agreeing reports gives zero suspects. Given the excluded index and a valid
   fifth report as filler, `heal` reads all 20 global corners from the four truthful reports, including the
   excluded organ's eight. Its 18 private cells remain unknown, and the call writes nothing. Any four truthful
   views determine the seal trit. Every possible three-organ view is compatible with all three values

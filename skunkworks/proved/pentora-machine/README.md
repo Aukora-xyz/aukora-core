@@ -39,10 +39,12 @@ indices. It leaves the assignment of individual private slots to edge midpoints 
   If all disagreements involve the same neighbour, both remain suspects. A private-only change to agreeing
   reports leaves zero seams and zero suspects (`private_cells_unwitnessed`). Two owners can also report the
   same false value at a shared corner without producing a seam there.
-- With four truthful organs and disagreements involving two different neighbours, `liar_among_suspects` and
-  `convicted` together identify the faulty organ. The first proves membership when there is a seam. The second
-  says every suspect equals the proposed owner. That conclusion holds even for an empty suspect list, and its
-  common-owner premise holds vacuously for disjoint owner pairs.
+- If the four other organs report truthfully about one common body and the only disagreements are at two corners
+  whose only common owner is organ x, the machine's `suspects()` names x alone. `liar_among_suspects` proves that
+  the faulty organ is among the suspects when there is a seam. `convicted` says every suspect equals the proposed
+  owner; that holds trivially for an empty suspect list, and its common-owner premise holds vacuously for disjoint
+  owner pairs. Neither theorem alone states the claim above, and the extra condition matters: seams at corners 0, 1
+  and 8 give no suspect in the Wasm file, because no organ owns all three.
 - The passed, unknown and failed tallies sum to 26 per report. Their triple is the triangle point
   (`triangle`, `organ_triangle`). Centre health is computed over the 110 cells of an agreeing body. It is 0
   when all passed, 1 when at least one is unknown and none failed, and 2 when any failed.
@@ -73,6 +75,7 @@ compute the sum as `20t mod 3`. Any caller with an agreeing buffer can read `sea
 ## Two figures and the flat faces (`Twin.lean`)
 
 The golden flip sends φ to 1 - φ. These statements are about lists of listed points; none is about solid cubes.
+The two figures share a three-dimensional cube of 27 sampled cells. It is not a flat interface.
 
 - `twin_is_a_pentora`: the 20 flipped points are all different, and the same five index lists pass the same
   distance test there.
@@ -84,13 +87,18 @@ The golden flip sends φ to 1 - φ. These statements are about lists of listed p
   points of cube 0. Which cube is "the rational one" depends on the coordinates chosen.
 - `shared_corner_three_owners`: each corner of cube 0 lies in exactly one of the other four listed cubes. ("Three
   owners" in a pair of figures is arithmetic, one shared cube plus one cube of each figure; it is not a theorem
-  about two figures.)
+  about two figures. It would also need the shared cube to be one reporting identity across both figures, and no
+  such protocol exists.)
 - `majority_true`: for values a, b, c and t, if at least two of a, b, c equal t then `maj a b c = t`. No machine for
   two figures exists in Lean or in the Wasm file.
 - `twelve_faces`, `face_meets_every_cube_once`, `face_has_five_pairs`, `corner_in_three_faces`: the 12 listed
   five-point sets pass a distance test (two neighbours at the edge length and two at squared distance 4); each
   shares exactly two points with each listed cube; their five points have five different owner pairs; each listed
-  vertex is in three of them. Flatness (coplanarity) is not checked in Lean, and `twin.py` does not check it either.
+  vertex is in three of them. Flatness (coplanarity) is not checked in Lean, and `twin.py` does not check it either. A reviewer reports
+  checking outside Lean that the distance pattern gives a regular planar pentagon, and that each face plane
+  holds ten sampled cells (five corners and the five midpoints of their diagonals); being a face also needs the
+  other vertices on one side of that plane, which Lean does not check. "Five cells, one byte" therefore describes
+  the five corners only.
 - `face_fits_a_byte`: 3^5 < 256.
 
 `twin.py` recomputes the same listed-point facts in exact arithmetic.
@@ -130,8 +138,10 @@ and the control with a planted wrong verdict.
 The checker recorded 11,633 passing comparisons on its normal run and zero failures. It counted five rejected
 malformed cases separately. All 400 generated bodies agreed and matched their expected addresses. The faulty organ
 was a suspect in all 391 corner-fault cases and the sole suspect in 241. All 391 recovered the expected corners
-with the faulty index supplied. Of 400 private assignments, 256 changed a trit and all preserved the zero seam
-mask. Each of 400 selected triples saw identical reports for two different sums.
+with the faulty index supplied. Of 400 private assignments, 256 changed a trit (144 wrote the value already there) and all preserved the zero seam
+mask. The 400 generated bodies include 301 distinct ones. A review observation, not re-checked here: the
+private-change check and the seal check test properties built into the examples, so on their own they cannot catch a
+faulty Wasm file. Each of 400 selected triples saw identical reports for two different sums.
 
 The lab reports compiling the executable definitions to Wasm. The Lean audit checks the source and the JavaScript
 comparison exercises the shipped bytes. No live integration or outside rebuild is documented here.
