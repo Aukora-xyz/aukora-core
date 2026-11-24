@@ -48,4 +48,10 @@
 'Pentora.face_has_five_pairs' does not depend on any axioms
 'Pentora.corner_in_three_faces' does not depend on any axioms
 'Pentora.face_fits_a_byte' does not depend on any axioms
+'Pentora.convicted_alone' depends on axioms: [propext, Quot.sound]
+'Pentora.shift_unseen' depends on axioms: [propext, Quot.sound]
+'Pentora.shift_seal' depends on axioms: [propext, Quot.sound]
+'Pentora.shift_cycle' depends on axioms: [propext, Quot.sound]
+'Pentora.address_bits' does not depend on any axioms
+'Pentora.judge_agrees' depends on axioms: [propext]
 exit 0

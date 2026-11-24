@@ -51,7 +51,7 @@ indices. It leaves the assignment of individual private slots to edge midpoints 
   when all passed, 1 when at least one is unknown and none failed, and 2 when any failed.
   `view_cell_in_body` proves that a trit value occurring in a local view occurs in the body. This carries a
   local failure to the centre. The centre has no separate address digit.
-- The address encodes all 110 trits injectively. The largest address needs **175 bits** (arithmetic; the Lean statement is the 22-byte bound `fits_22_bytes`), which fits in 22 bytes.
+- The address encodes all 110 trits injectively. The largest address needs **175 bits** (`address_bits` states it; `fits_22_bytes` is the 22-byte bound), which fits in 22 bytes.
   Each organ can check its own 26 trits against a supplied body. Changing another organ's private trit changes
   the address while preserving the first organ's view. Equal addresses give equal bodies (`address_injective`),
   hence equal centre health (`centre_of_address`).
@@ -72,6 +72,22 @@ This is possibilistic hiding.
 The theorem gives no probabilities. For example, if all corners copy the same random trit `t`, even one organ can
 compute the sum as `20t mod 3`. Any caller with an agreeing buffer can read `seal()` directly.
 **Do not use this trit as a key or put secrets in it.**
+
+## Sharper statements (`Sharper.lean`)
+
+Written after outside reviews found that some prose said more than the theorems in `Pentora.lean`. Nothing in
+`Pentora.lean` or `Entry.lean` changed. Each theorem here says exactly one thing.
+
+- `convicted_alone`: if four organs report the body truly, and the reports disagree at two corners whose only common
+  owner is organ x, then x is a suspect and every suspect equals x.
+- `shift_unseen`, `shift_seal`, `shift_cycle`: leave out two different organs x and y, and move the lower corner
+  that only they own one step. The other three organs' views are unchanged, the sum modulo three goes up by one, and
+  three such moves give back the same body. So the bodies with one given three-organ view come in cycles of three,
+  one for each sum. This is a counting fact. No probability statement is made in Lean.
+- `address_bits`: 3^110 < 2^175 and 2^174 < 3^110, so the address needs 175 bits.
+- `judge_agrees`: if the compiled entry function `judge` returns a value below 256, the input is well formed (130
+  bytes of 0, 1 or 2) and the decoded reports have no disagreement.
+- `view_upd`, `bump3`, `seam_code_is_large`: helpers.
 
 ## Two figures and the twelve five-point faces (`Twin.lean`)
 
@@ -127,9 +143,10 @@ followed by eight corners in slot order. Input codes are 0 for failed, 1 for unk
 
 ## What was checked
 
-The three Lean files declare 68 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in
-`Twin.lean`). The stored axiom audit lists 50 of them and 17 list no axioms. It lists no axioms for the six geometry
-results, and none for ten of the eleven `Twin.lean` results (`majority_true` lists `propext`). Two audited results use `Classical.choice` (`seams_nil_iff` and `no_seam_one_body`).
+The four Lean files declare 78 theorems, including helpers (56 in `Pentora.lean`, one in `Entry.lean`, 11 in
+`Twin.lean`, 10 in `Sharper.lean`). The stored axiom audit lists 56 of them and 18 list no axioms. It lists no axioms
+for the six geometry results, none for ten of the eleven `Twin.lean` results (`majority_true` lists `propext`), and
+none for `address_bits`. Two audited results use `Classical.choice` (`seams_nil_iff` and `no_seam_one_body`).
 The other axioms appearing in the audit are `propext` and `Quot.sound`. The Lean sources contain no `sorry`.
 
 The checker loads only the Wasm and computes expected machine outputs in separate JavaScript. Its cube search

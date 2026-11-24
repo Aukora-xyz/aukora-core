@@ -8,6 +8,7 @@ check_lean() {
     "$LEAN" -j1 --root="$G" -o work/Pentora.olean Pentora.lean || return $?
     LEAN_PATH="$G/work" "$LEAN" -j1 --root="$G" -o work/Entry.olean Entry.lean || return $?
     LEAN_PATH="$G/work" "$LEAN" -j1 --root="$G" -o work/Twin.olean Twin.lean || return $?
+    LEAN_PATH="$G/work" "$LEAN" -j1 --root="$G" -o work/Sharper.olean Sharper.lean || return $?
     LEAN_PATH="$G/work" "$LEAN" -j1 Axioms.lean || return $?
 }
 status=0

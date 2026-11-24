@@ -99,8 +99,10 @@ it is not one, because nothing forces a real system to route through it.
   views determine the seal trit. Every possible three-organ view is compatible with all three values
   (possibilistic hiding). Do not use this trit as a key or put secrets in it. `Twin.lean` adds a golden-flipped second figure: the two figures' lists of cell points share
   exactly 27 points, all in cube 0 (listed points, not solid cubes), a majority-of-three law, and twelve listed
-  five-point sets that each meet every listed cube. The three Lean files declare 68
-  theorems including helpers, and the stored axiom audit lists 50. The lab reports compiling the executable
+  five-point sets that each meet every listed cube. `Sharper.lean` restates five
+  claims exactly (a sole suspect with its precondition, the three-organ cycles of bodies, the 175-bit address, and what
+  the compiled `judge` says). The four Lean files declare 78 theorems including helpers, and the stored axiom audit
+  lists 56. The lab reports compiling the executable
   definitions to Wasm. `run-all.sh` runs the JavaScript comparison and its planted control. The verdict carries
   no authority. No live integration or outside rebuild is documented here.
 - `delegation-exhibit/`, `bubble/`, `alibi/`: exhibits of delegation receipts and of two ways to show what a record
