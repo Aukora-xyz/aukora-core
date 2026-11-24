@@ -39,7 +39,7 @@ const healthOf = r => (r.includes(0) ? 2 : r.includes(1) ? 1 : 0);
 const suspectsOf = R => { const m = seamsOf(R); if (!m) return 0; let s = 0; for (let c = 0; c < 5; c++) { let all = true; for (let v = 0; v < 20; v++) if ((m >> v) & 1 && !owners(v).includes(c)) all = false; if (all) s |= 1 << c; } return s; };
 const addressOf = g => { let n = 0n; const cells = [...g.priv.flat(), ...g.corn]; for (let i = cells.length - 1; i >= 0; i--) n = n * 3n + BigInt(cells[i]); return n; };
 const unpack = n => { const cells = []; for (let i = 0; i < 110; i++) { cells.push(Number(n % 3n)); n /= 3n; } return cells; };
-let agree = 0, liars = 0, convicted = 0, privateLies = 0, addresses = new Set(), distinct = new Set();
+let agree = 0, liars = 0, convicted = 0, privateLies = 0, heals = 0, hidden = 0, addresses = new Set(), distinct = new Set();
 for (let round = 0; round < 400; round++) {
   const g = body([0, 60, 90, 100][round % 4]), R = views(g); send(R); agree++;
   const expected = R.reduce((acc, r, c) => acc + healthOf(r) * 3 ** c, 0);
@@ -61,6 +61,13 @@ for (let round = 0; round < 400; round++) {
     const partners = new Set(lied.map(j => owners(cubes[x][j]).find(c => c !== x)));
     if (partners.size >= 2) { convicted++; want('two different neighbours convict the liar alone', api.suspects() >>> 0, 1 << x); }
     else want('one neighbour only: two suspects, the liar and that neighbour', api.suspects() >>> 0, (1 << x) | (1 << [...partners][0])); }
+  want('seal', api.seal === undefined ? -1 : (send(R), api.seal() >>> 0), g.corn.reduce((a, x) => a + x, 0) % 3);
+  want('centre', api.centre() >>> 0, Math.max(...R.map(healthOf)));
+  if (lied.length) { send(L); let healed = 0; for (let v = 0; v < 20; v++) if ((api.heal(x, v) >>> 0) === g.corn[v]) healed++; heals++; want('four organs give back all 20 true corners', healed, 20); want('no seal while reports disagree', api.seal() >>> 0, 0xFFFFFFFF); }
+  { const a = rnd(5), b = (a + 1 + rnd(4)) % 5, v = [...Array(20).keys()].find(u => owners(u).includes(a) && owners(u).includes(b)), g2 = { priv: g.priv, corn: g.corn.map((t, u) => (u === v ? (t + 1) % 3 : t)) }, R2 = views(g2);
+    const three = [0, 1, 2, 3, 4].filter(c => c !== a && c !== b); hidden++;
+    want('three organs see no difference', three.every(c => R2[c].join('') === R[c].join('')), true);
+    send(R2); want('yet the seal differs', api.seal() >>> 0, (g.corn.reduce((s, t) => s + t, 0) + 1) % 3); }
   // an organ changes only its private cells: nobody can see it
   const P = R.map(r => [...r]); P[x][rnd(18)] = rnd(3); send(P); privateLies++; want('a private change makes no seam', api.seams() >>> 0, 0);
 }
@@ -70,6 +77,6 @@ api.reset(); for (let i = 0; i < 131; i++) api.input(2); if ((api.judge() >>> 0)
 api.reset(); for (let i = 0; i < 130; i++) api.input(i === 77 ? 3 : 2); if ((api.judge() >>> 0) === 0xFFFFFFFF) malformed++; else bad++;
 api.reset(); for (let i = 0; i < 130; i++) api.input(2); want('all 110 cells passed: verdict 0', api.judge() >>> 0, 0); want('out-of-range address byte', api.addressByte(22) >>> 0, 0xFFFFFFFF);
 console.log(`pentora.wasm ${bytes.length} bytes, sha256 ${createHash('sha256').update(bytes).digest('hex')}, imports 0, exports ${WebAssembly.Module.exports(mod).map(e => e.name).sort().join(',')}`);
-console.log(`${agree} bodies agreed and addressed; ${liars} single liars, each among the suspects; ${convicted} convicted alone; ${privateLies} private changes unseen (the stated limit); malformed ${malformed} of 5 refused`);
+console.log(`${agree} bodies agreed and addressed; ${liars} single liars, each among the suspects; ${convicted} convicted alone; ${privateLies} private changes unseen (the stated limit); ${heals} healed by the other four; ${hidden} seals hidden from three; malformed ${malformed} of 5 refused`);
 if (notes.length) console.log(notes.join('\n'));
 console.log(`${ok} passed, ${bad} failed (Pentora machine, compiled from the proved text)`); process.exit(bad ? 1 : 0);

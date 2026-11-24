@@ -38,32 +38,49 @@ is therefore reported twice, once by each of the two organs that share it.
   health 2 means some cell failed.
 - `address_injective`, `address_lt`, `fits_22_bytes`: the 110 cells of the body read as one number in base three
   fit in 22 bytes (and not in 21), and the number IS the state: two bodies with the same address are the same body.
-29 theorems in all; axioms `propext`, `Quot.sound`, and `Classical.choice` in two (`check.txt`). No `sorry`.
+## Three levels of knowing (`Pentora.lean`, part 3)
+A private cell has one owner. A corner has exactly two. The centre belongs to all five cubes. From "exactly two":
+- `four_see_all`, `heal_true`: SELF-HEALING. Any four organs hold every one of the 20 corners. If one organ lies, is
+  broken or is silent, the other four give back all 20 true corners.
+- `seal_known_to_four`, `seal_hidden_from_three`: THE SEAL. Let the seal be the sum of the 20 corners, counted in
+  threes. Any four organs know it. Any three do not: whatever three organs see, there is a body that looks exactly
+  the same to them with ANY seal you name. So a value can be kept by the five so that no three of them, a majority,
+  can read it, and any four can. This is a known construction (replicated secret sharing, four of five); what is
+  proved here is that this figure carries it, because every two organs own a corner nobody else owns (`blind_corner`).
+- `centre_zero_iff`, `local_fail_reaches_centre`, `centre_of_address`: THE CENTRE. The one cell of all five cubes has
+  no digit in the address. It is read off the other 110: clear exactly when every cell passed, failed as soon as any
+  one organ sees a failure, and fixed by the address, so nothing can set it by itself.
+39 theorems in all; axioms `propext`, `Quot.sound`, and `Classical.choice` in two (`check.txt`). No `sorry`.
 
 ## The compiled file (RAN)
-`pentora.wasm`: 148,307 bytes, no imports, SHA-256
-`461daf989686749cbcbed7b7e52378d958da4d3d3dc326536208392002c211a8`, compiled from `Pentora.lean` and `Entry.lean`
+`pentora.wasm`: 151,039 bytes, no imports, SHA-256
+`f735a7f915b97c80a7fbca9b6450ff72733f549207702aba3a8b54f8ced3596f`, compiled from `Pentora.lean` and `Entry.lean`
 by the same route as the core's small file (Lean to C to WebAssembly; `interface.c` is all the C that was written).
 Input: 130 bytes, five reports of 26 cells (0 failed, 1 unknown, 2 passed). `judge()` answers 0 to 242 (the reports
 agree; the five healths in base three), 256 + v (the two owners of corner v disagree), or 0xFFFFFFFF (not that
-shape). `seams()`, `suspects()`, `addressByte(i)`, `tally(c, t)`, `owner(v, w)`, `vertex(c, j)` give the rest.
-`check.mjs` rebuilds the five cubes on its own, in exact arithmetic, and compares: 9,258 checks, 0 failed, on 400
-generated bodies, 392 single liars (each among the suspects, 241 convicted alone), 400 private changes (unseen, as
-the limit says), 5 malformed inputs; a planted wrong expectation is reported. The figure is thus computed by three
+shape). `seams()`, `suspects()`, `addressByte(i)`, `tally(c, t)`, `seal()`, `centre()`, `heal(x, v)`, `owner(v, w)`,
+`vertex(c, j)` give the rest.
+`check.mjs` rebuilds the five cubes on its own, in exact arithmetic, and compares: 11,633 checks, 0 failed, on 400
+generated bodies, 391 single liars (each among the suspects, 241 convicted alone, all 391 healed by the other four),
+400 private changes (unseen, as the limit says), 400 seals hidden from three organs, 5 malformed inputs; a planted wrong expectation is reported. The figure is thus computed by three
 programs: `gen.py`, `check.mjs` and the Lean kernel.
 
 ## What this is for
-One word of 22 bytes that says how a five-part system stands, that each part can check from its own cube, and in
-which a single false part is named by its neighbours. It fits in a line of a record.
+One word of 22 bytes that says how a five-part system stands, that each part can check from its own cube, in which a
+single false part is named by its neighbours and repaired by them, and whose shared layer can hold a value that no
+three parts can read. It fits in a line of a record.
 
 ## NOT proved, NOT done
 1. The laws are about the Lean text. The compiled file is compared with plain code; that is evidence, not proof.
-2. Two organs that both own a corner can misreport it together, unseen. With disagreements at one neighbour only,
+2. The seal here is one value of three per body. `seal_hidden_from_three` says three organs' views rule no value
+   out; it does not speak of probabilities, of timing, or of what the organs learn another way. It is not a new kind
+   of cryptography and it is not a hash: the address is the state itself, 174 bits and no more.
+3. Two organs that both own a corner can misreport it together, unseen. With disagreements at one neighbour only,
    there are two suspects, not one. `liar_among_suspects` assumes every other organ reports truly.
-3. Any layout in which every shared cell has exactly two owners has the gluing and fault laws. What this figure adds,
+4. Any layout in which every shared cell has exactly two owners has the gluing and fault laws. What this figure adds,
    and what is proved for it, is that every pair has exactly two witnesses, with nothing shared three ways. It is not
    claimed that this beats another layout with the same property.
-4. It is an instrument. A verdict carries no authority, the core's record machine does not use it, and it is wired
+5. It is an instrument. A verdict carries no authority, the core's record machine does not use it, and it is wired
    into no live system. What the cells MEAN (which checks an organ runs) is not part of this file.
-5. The WebAssembly file was built in the lab; the build needs the lab's small runtime, which is not in this tree.
+6. The WebAssembly file was built in the lab; the build needs the lab's small runtime, which is not in this tree.
    Nobody outside has rebuilt it.

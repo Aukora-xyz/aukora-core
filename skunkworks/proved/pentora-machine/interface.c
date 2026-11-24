@@ -1,4 +1,4 @@
-/* The whole of the C in the Pentora machine's Wasm file: a 130-byte buffer and seven calls into the Lean-generated code. */
+/* The whole of the C in the Pentora machine's Wasm file: a 130-byte buffer and ten calls into the Lean-generated code. */
 #include <lean/lean.h>
 #include <string.h>
 #include "exports.h"
@@ -28,3 +28,6 @@ uint32_t addressByte(uint32_t i) { lean_object *b = take(); return b ? pentora_a
 uint32_t tally(uint32_t c, uint32_t t) { lean_object *b = take(); return b ? pentora_tally(b, c, t) : 0xFFFFFFFFu; }
 uint32_t owner(uint32_t v, uint32_t w) { start(); return pentora_owner(v, w); }
 uint32_t vertex(uint32_t c, uint32_t j) { start(); return pentora_vertex(c, j); }
+uint32_t seal(void) { lean_object *b = take(); return b ? pentora_seal(b) : 0xFFFFFFFFu; }
+uint32_t centre(void) { lean_object *b = take(); return b ? pentora_centre(b) : 0xFFFFFFFFu; }
+uint32_t heal(uint32_t x, uint32_t v) { lean_object *b = take(); return b ? pentora_heal(b, x, v) : 0xFFFFFFFFu; }

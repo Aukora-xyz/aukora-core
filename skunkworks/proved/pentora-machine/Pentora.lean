@@ -449,4 +449,175 @@ theorem address_injective {g g' : Body} (h : address g = address g') : g = g' :=
 /-- The body of five agreeing reports, as its address. -/
 def addressOf (R : Fin 5 → Report) : Nat := address (glue R)
 
+/-! ## Part 3. Three levels of knowing: one owner, two owners, all five
+
+A private cell is seen by one organ. A corner is seen by exactly two. The centre belongs to all five cubes. This part
+proves what follows from "exactly two": any four organs hold every corner, any three are blind to two of them. -/
+
+theorem code_ofCode (n : Nat) : (Trit.ofCode n).code = n % 3 := by
+  unfold Trit.ofCode
+  by_cases h0 : n % 3 = 0
+  · simp [h0, Trit.code]
+  · by_cases h1 : n % 3 = 1
+    · simp [h1, Trit.code]
+    · have : n % 3 = 2 := by omega
+      simp [this, Trit.code]
+
+theorem cell_priv (g : Body) (c : Fin 5) (k : Fin 18) :
+    cell g ⟨c.val * 18 + k.val, by have := c.isLt; have := k.isLt; omega⟩ = g.priv c k := by
+  have hc5 := c.isLt; have hk := k.isLt
+  have hlt : c.val * 18 + k.val < 90 := by omega
+  unfold cell
+  rw [dif_pos hlt]
+  have ec : (⟨(c.val * 18 + k.val) / 18, by omega⟩ : Fin 5) = c := Fin.ext (by show (c.val * 18 + k.val) / 18 = c.val; omega)
+  have ek : (⟨(c.val * 18 + k.val) % 18, Nat.mod_lt _ (by decide)⟩ : Fin 18) = k := Fin.ext (by show (c.val * 18 + k.val) % 18 = k.val; omega)
+  rw [ec, ek]
+
+theorem cell_corn (g : Body) (v : Fin 20) : cell g ⟨90 + v.val, by have := v.isLt; omega⟩ = g.corn v := by
+  have hv := v.isLt
+  have hge : ¬ (90 + v.val < 90) := by omega
+  unfold cell
+  rw [dif_neg hge]
+  have ev : (⟨90 + v.val - 90, by omega⟩ : Fin 20) = v := Fin.ext (by show 90 + v.val - 90 = v.val; omega)
+  rw [ev]
+
+/-- Every cell an organ sees is a cell of the body. -/
+theorem view_cell_in_body (g : Body) (c : Fin 5) (t : Trit) (m : t ∈ cellsOf (view g c)) : t ∈ cells g := by
+  unfold cellsOf at m
+  rcases List.mem_append.1 m with m | m
+  · obtain ⟨k, _, rfl⟩ := List.mem_map.1 m
+    exact List.mem_map.2 ⟨_, mem_fins _, cell_priv g c k⟩
+  · obtain ⟨j, _, rfl⟩ := List.mem_map.1 m
+    exact List.mem_map.2 ⟨_, mem_fins _, cell_corn g (slot c j)⟩
+
+/-- The centre: the one cell of all five cubes. It has no digit in the address; it is read off the other 110. -/
+def centre (g : Body) : Nat := health (cells g)
+
+/-- THE CENTRE IS CLEAR exactly when every one of the 110 cells passed. -/
+theorem centre_zero_iff (g : Body) : centre g = 0 ↔ ∀ i, cell g i = .pass := by
+  unfold centre
+  rw [health_zero_iff]
+  constructor
+  · intro h i; exact h _ (List.mem_map.2 ⟨i, mem_fins i, rfl⟩)
+  · intro h x m; obtain ⟨i, _, rfl⟩ := List.mem_map.1 m; exact h i
+
+/-- A FAILURE ANYWHERE REACHES THE CENTRE. If one organ sees a failed cell in its own cube, the centre says failed. -/
+theorem local_fail_reaches_centre (g : Body) (c : Fin 5) (h : health (cellsOf (view g c)) = 2) : centre g = 2 :=
+  (health_two_iff _).2 (view_cell_in_body g c _ ((health_two_iff _).1 h))
+
+/-- NOTHING CAN SET THE CENTRE. It is fixed by the address of the 110 cells. -/
+theorem centre_of_address {g g' : Body} (h : address g = address g') : centre g = centre g' := by
+  rw [address_injective h]
+
+/-- A corner that organs x and y own together (the lower of their two). -/
+def blindOf (x y : Fin 5) : Fin 20 :=
+  ((fins 20).filter fun v => ((home1 v).1 = x ∧ (home2 v).1 = y) ∨ ((home1 v).1 = y ∧ (home2 v).1 = x)).headD 0
+
+/-- For every two organs there is a corner that those two own and nobody else does. -/
+theorem blind_corner : ∀ x y : Fin 5, x ≠ y →
+    ((home1 (blindOf x y)).1 = x ∧ (home2 (blindOf x y)).1 = y) ∨
+    ((home1 (blindOf x y)).1 = y ∧ (home2 (blindOf x y)).1 = x) := by decide +kernel
+
+/-- ANY FOUR ORGANS HOLD EVERY CORNER. Two bodies that look the same to four organs have the same 20 corners:
+    the fifth organ's whole shared face is known to the others. -/
+theorem four_see_all (g g' : Body) (x : Fin 5) (h : ∀ c, c ≠ x → view g c = view g' c) : g.corn = g'.corn := by
+  funext v
+  have hv := homes v
+  by_cases h1 : (home1 v).1 = x
+  · have h2 : (home2 v).1 ≠ x := fun k => hv.2.2 (h1.trans k.symm)
+    have e : (view g (home2 v).1).corn (home2 v).2 = (view g' (home2 v).1).corn (home2 v).2 := by rw [h _ h2]
+    change g.corn (slot (home2 v).1 (home2 v).2) = g'.corn (slot (home2 v).1 (home2 v).2) at e
+    rw [hv.2.1] at e; exact e
+  · have e : (view g (home1 v).1).corn (home1 v).2 = (view g' (home1 v).1).corn (home1 v).2 := by rw [h _ h1]
+    change g.corn (slot (home1 v).1 (home1 v).2) = g'.corn (slot (home1 v).1 (home1 v).2) at e
+    rw [hv.1] at e; exact e
+
+/-- The corners with organ x overruled: each corner is taken from its owner that is not x. -/
+def heal (R : Fin 5 → Report) (x : Fin 5) : Fin 20 → Trit :=
+  fun v => if (home1 v).1 = x then at2 R v else at1 R v
+
+/-- SELF-HEALING. If every organ but x reports the body truly, the other four give back all 20 true corners,
+    whatever x says or even if x says nothing. -/
+theorem heal_true (g : Body) (R : Fin 5 → Report) (x : Fin 5) (honest : ∀ c, c ≠ x → R c = view g c) :
+    heal R x = g.corn := by
+  funext v
+  have hv := homes v
+  unfold heal
+  by_cases h1 : (home1 v).1 = x
+  · rw [if_pos h1]
+    have h2 : (home2 v).1 ≠ x := fun k => hv.2.2 (h1.trans k.symm)
+    show (R (home2 v).1).corn (home2 v).2 = g.corn v
+    rw [honest _ h2]; exact at2_view g v
+  · rw [if_neg h1]
+    show (R (home1 v).1).corn (home1 v).2 = g.corn v
+    rw [honest _ h1]; exact at1_view g v
+
+/-! ### The seal: one value spread over the 20 corners -/
+
+def upd (f : Fin 20 → Trit) (v : Fin 20) (t : Trit) : Fin 20 → Trit := fun u => if u = v then t else f u
+def sumC (f : Fin 20 → Trit) : List (Fin 20) → Nat
+  | [] => 0
+  | u :: us => (f u).code + sumC f us
+def cnt (v : Fin 20) : List (Fin 20) → Nat
+  | [] => 0
+  | u :: us => (if u = v then 1 else 0) + cnt v us
+
+theorem sumC_upd (f : Fin 20 → Trit) (v : Fin 20) (t : Trit) :
+    ∀ l, sumC (upd f v t) l + cnt v l * (f v).code = sumC f l + cnt v l * t.code
+  | [] => by simp [sumC, cnt]
+  | u :: us => by
+    have ih := sumC_upd f v t us
+    by_cases e : u = v
+    · subst e
+      simp only [sumC, cnt, upd, if_true]
+      rw [Nat.add_mul, Nat.add_mul, Nat.one_mul, Nat.one_mul]
+      omega
+    · simp only [sumC, cnt, upd, if_neg e, Nat.zero_add]
+      omega
+
+theorem cnt_fins : ∀ v : Fin 20, cnt v (fins 20) = 1 := by decide +kernel
+
+/-- The seal of a body: the sum of its 20 corners, counted in threes. -/
+def sealOf (g : Body) : Nat := sumC g.corn (fins 20) % 3
+
+theorem seal_upd (g : Body) (v : Fin 20) (t : Trit) :
+    sumC (upd g.corn v t) (fins 20) + (g.corn v).code = sumC g.corn (fins 20) + t.code := by
+  have h := sumC_upd g.corn v t (fins 20)
+  rw [cnt_fins v, Nat.one_mul, Nat.one_mul] at h
+  exact h
+
+/-- FOUR ORGANS KNOW THE SEAL. Two bodies that look the same to any four organs have the same seal. -/
+theorem seal_known_to_four (g g' : Body) (x : Fin 5) (h : ∀ c, c ≠ x → view g c = view g' c) : sealOf g = sealOf g' := by
+  unfold sealOf; rw [four_see_all g g' x h]
+
+/-- THREE ORGANS KNOW NOTHING OF THE SEAL. Leave out any two organs. Whatever the other three see, there is a body
+    that looks exactly the same to those three and whose seal is any value you name. Their view rules nothing out. -/
+theorem seal_hidden_from_three (g : Body) (x y : Fin 5) (hxy : x ≠ y) (target : Nat) (ht : target < 3) :
+    ∃ g' : Body, (∀ c, c ≠ x → c ≠ y → view g' c = view g c) ∧ sealOf g' = target := by
+  have hv := blind_corner x y hxy
+  generalize blindOf x y = v at hv
+  refine ⟨⟨g.priv, upd g.corn v (Trit.ofCode (target + (g.corn v).code + 2 * sumC g.corn (fins 20)))⟩, ?_, ?_⟩
+  · intro c cx cy
+    apply Report.ext'
+    · rfl
+    · funext j
+      show upd g.corn v _ (slot c j) = g.corn (slot c j)
+      have ne : slot c j ≠ v := by
+        intro k
+        rcases slots c j with e | e
+        · have o : (home1 v).1 = c := by rw [← k, e]
+          rcases hv with ⟨a, _⟩ | ⟨a, _⟩
+          · exact cx (o.symm.trans a)
+          · exact cy (o.symm.trans a)
+        · have o : (home2 v).1 = c := by rw [← k, e]
+          rcases hv with ⟨_, b⟩ | ⟨_, b⟩
+          · exact cy (o.symm.trans b)
+          · exact cx (o.symm.trans b)
+      unfold upd; rw [if_neg ne]
+  · have h := seal_upd g v (Trit.ofCode (target + (g.corn v).code + 2 * sumC g.corn (fins 20)))
+    have hc := code_ofCode (target + (g.corn v).code + 2 * sumC g.corn (fins 20))
+    have ho := code_lt (g.corn v)
+    show sumC (upd g.corn v _) (fins 20) % 3 = target
+    omega
+
 end Pentora

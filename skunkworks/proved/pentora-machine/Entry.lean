@@ -57,4 +57,18 @@ theorem no_seam_one_body (b : ByteArray) (h : seams (reportOf b) = []) :
 @[export pentora_vertex] def vertexOf (c j : UInt32) : UInt32 :=
   if h : c.toNat < 5 ∧ j.toNat < 8 then (slot ⟨c.toNat, h.1⟩ ⟨j.toNat, h.2⟩).val.toUInt32 else 0xFFFFFFFF
 
+/-- The seal of the one body behind agreeing reports (0, 1 or 2). -/
+@[export pentora_seal] def sealByte (b : ByteArray) : UInt32 :=
+  if wellFormed b && (seams (reportOf b)).isEmpty then (sealOf (glue (reportOf b))).toUInt32 else 0xFFFFFFFF
+
+/-- The centre of the one body behind agreeing reports: 0 all passed, 1 something unknown, 2 something failed. -/
+@[export pentora_centre] def centreByte (b : ByteArray) : UInt32 :=
+  if wellFormed b && (seams (reportOf b)).isEmpty then (centre (glue (reportOf b))).toUInt32 else 0xFFFFFFFF
+
+/-- Corner v with organ x overruled: its value as told by its owner that is not x. -/
+@[export pentora_heal] def healByte (b : ByteArray) (x v : UInt32) : UInt32 :=
+  if h : wellFormed b = true ∧ x.toNat < 5 ∧ v.toNat < 20 then
+    (heal (reportOf b) ⟨x.toNat, h.2.1⟩ ⟨v.toNat, h.2.2⟩).code.toUInt32
+  else 0xFFFFFFFF
+
 end Pentora

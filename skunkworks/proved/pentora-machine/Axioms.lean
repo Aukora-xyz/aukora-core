@@ -30,3 +30,13 @@ open Pentora
 #print axioms address_lt
 #print axioms address_injective
 #print axioms no_seam_one_body
+#print axioms view_cell_in_body
+#print axioms centre_zero_iff
+#print axioms local_fail_reaches_centre
+#print axioms centre_of_address
+#print axioms blind_corner
+#print axioms four_see_all
+#print axioms heal_true
+#print axioms cnt_fins
+#print axioms seal_known_to_four
+#print axioms seal_hidden_from_three
